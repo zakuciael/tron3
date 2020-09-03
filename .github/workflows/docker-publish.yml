@@ -20,10 +20,10 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: yarn install
-      - name: Debug Log
-        run: ls -la ./
       - name: Build package
         run: yarn build
+      - name: Debug Log
+        run: ls -la ./
       - name: Build image
         run: docker build . --file Dockerfile --tag $IMAGE_NAME
       - name: Log into GitHub Container Registry
