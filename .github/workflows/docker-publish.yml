@@ -22,10 +22,6 @@ jobs:
         run: yarn install
       - name: Build package
         run: yarn build
-      - name: Debug Log
-        run: |
-          pwd
-          ls -la ./
       - name: Build image
         run: docker build . --file Dockerfile --tag $IMAGE_NAME
       - name: Log into GitHub Container Registry
