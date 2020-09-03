@@ -1,0 +1,11 @@
+#!/bin/sh
+
+#
+# Tron 3
+# Copyright (c) 2022 Krzysztof Saczuk <zakku@zakku.eu>.
+# MIT Licensed
+#
+
+. "$(dirname "$0")/_/husky.sh"
+
+pnpm exec lint-staged

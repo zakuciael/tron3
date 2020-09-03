@@ -1,0 +1,21 @@
+{
+  "jsc": {
+    "target": "es2020",
+    "parser": {
+      "syntax": "typescript",
+      "decorators": true
+    },
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true
+    },
+    "paths": {
+      "~/*": ["src/*"]
+    },
+    "baseUrl": "."
+  },
+  "module": {
+    "type": "es6"
+  },
+  "sourceMaps": "inline"
+}

@@ -1,0 +1,28 @@
+name: Continuous integration
+
+on: [push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Run eslint
+        run: pnpm lint
+      - name: Run type check
+        uses: computerjazz/typescript-error-reporter-action@v1.0.11
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}

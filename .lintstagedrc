@@ -1,0 +1,10 @@
+{
+  "**/*.{ts,js, cjs, mjs, cts, mts}": [
+    "prettier --write",
+    "xo --fix",
+    "tsc-files --noEmit"
+  ],
+  "**/*.json": [
+    "prettier --write"
+  ]
+}
