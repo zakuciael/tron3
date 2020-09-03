@@ -38,9 +38,6 @@ jobs:
         run: echo "${{ secrets.CR_PAT }}" | docker login https://docker.pkg.github.com -u ${{ github.actor }} --password-stdin
       - name: Push image to GitHub Container Registry
         run: |
-          IMAGE_ID=$(docker images --format "{{.Repository}} {{.ID}}" | grep $IMAGE_NAME | grep -o '\S*$')
-          IMAGE_GH=docker.pkg.github.com/${{ github.repository_owner }}/$IMAGE_NAME:$VERSION
-          
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           
@@ -49,6 +46,9 @@ jobs:
           
           # Use Docker `latest` tag convention
           [ "$VERSION" == "master" ] && VERSION=latest
+          
+          IMAGE_ID=$(docker images --format "{{.Repository}} {{.ID}}" | grep $IMAGE_NAME | grep -o '\S*$')
+          IMAGE_GH=docker.pkg.github.com/${{ github.repository_owner }}/$IMAGE_NAME:$VERSION
         
           echo IMAGE_NAME=$IMAGE_NAME
           echo VERSION=$VERSION
