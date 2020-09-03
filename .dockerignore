@@ -40,7 +40,6 @@ web_modules/
 .next
 out
 .nuxt
-dist
 .cache/
 .vuepress/dist
 .serverless/
