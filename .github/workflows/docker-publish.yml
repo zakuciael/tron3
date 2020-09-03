@@ -20,6 +20,8 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: yarn install
+      - name: Debug Log
+        run: ls -la ./
       - name: Build package
         run: yarn build
       - name: Build image
