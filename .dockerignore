@@ -1,5 +1,4 @@
 # Created by .ignore support plugin (hsz.mobi)
-.vscode/
 *.code-workspace
 .history/
 logs
@@ -21,7 +20,6 @@ coverage
 bower_components
 .lock-wscript
 build/Release
-node_modules/
 jspm_packages/
 web_modules/
 *.tsbuildinfo
@@ -58,8 +56,16 @@ cmake-build-*/
 out/
 .idea_modules/
 atlassian-ide-plugin.xml
-.idea/
 com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+.vscode/
+.idea/
+node_modules/
+.github/
+src/
+config.example.json
+LICENSE
+README.md
+tsconfig.json
