@@ -1,0 +1,6 @@
+{
+  "token": "<DISCORD TOKEN GOES HERE>",
+  "ignore_dnd": false,
+  "prefix": "<BOT PREFIX>",
+  "notifications": {}
+}
