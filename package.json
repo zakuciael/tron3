@@ -6,7 +6,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts",
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "chokidar": "^3.4.2",
