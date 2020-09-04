@@ -1,8 +1,6 @@
 export interface Config {
     token: string;
-    prefix: string;
-    ignore_dnd: boolean;
-    notifications: NotificationMap;
+    guilds: GuildMap;
 }
 
 export interface NotificationMap {
@@ -13,4 +11,14 @@ export interface NotificationSettings {
     roles: string[];
     users: string[];
     excluded_users: string[];
+}
+
+export interface GuildMap {
+    [key: string]: GuildSettings;
+}
+
+export interface GuildSettings {
+    prefix: string;
+    ignore_dnd: boolean;
+    notifications: NotificationMap;
 }

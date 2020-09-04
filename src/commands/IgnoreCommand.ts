@@ -1,6 +1,6 @@
 import {Command, Usage} from "../commander/Command";
-import {ConfigManager} from "../config/ConfigManager";
 import {EmbedBuilder} from "../utils/EmbedBuilder";
+import {GuildConfig} from "../config/GuildConfig";
 import {Message} from "discord.js";
 
 export class IgnoreCommand extends Command {
@@ -10,7 +10,7 @@ export class IgnoreCommand extends Command {
         description: "Excludes you from notifications"
     };
 
-    async execute(msg: Message, args: string[], config: ConfigManager): Promise<void> {
+    async execute(msg: Message, args: string[], config: GuildConfig): Promise<void> {
         const applyToAllChannels = args[0] === "all";
         const enabled = args[1].toLowerCase() === "on";
         const notifications = config.getNotificationManager()
@@ -47,11 +47,11 @@ export class IgnoreCommand extends Command {
             else if (!enabled && found) notification?.removeExcludedMember(msg.member!)
         });
 
-        await config.save();
+        await config.getConfigManager().save();
         msg.channel.send({ embed });
     }
 
-    async validate(msg: Message, args: string[], config: ConfigManager): Promise<boolean> {
+    async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return args.length === 2 && ["on", "off"].includes(args[1].toLowerCase());
     }
 

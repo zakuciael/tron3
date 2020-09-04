@@ -1,6 +1,6 @@
 import {Command, Usage} from "../commander/Command";
-import {ConfigManager} from "../config/ConfigManager";
 import {EmbedBuilder} from "../utils/EmbedBuilder";
+import {GuildConfig} from "../config/GuildConfig";
 import {Message} from "discord.js";
 
 export default class SettingsCommand extends Command {
@@ -10,7 +10,7 @@ export default class SettingsCommand extends Command {
         description: "Displays settings in human readable format"
     };
 
-    async execute(msg: Message, args: string[], config: ConfigManager): Promise<void> {
+    async execute(msg: Message, args: string[], config: GuildConfig): Promise<void> {
         const embed = EmbedBuilder.getCommandEmbed(msg.member!);
         embed.setTitle("Bot Settings");
 
@@ -38,7 +38,7 @@ export default class SettingsCommand extends Command {
         msg.channel.send({ embed });
     }
 
-    async validate(msg: Message, args: string[], config: ConfigManager): Promise<boolean> {
+    async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return true;
     }
 }

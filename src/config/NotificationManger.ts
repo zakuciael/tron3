@@ -11,9 +11,8 @@ export class NotificationManger {
         let keys = Object.keys(notifications);
         let values = Object.values(notifications);
 
-        for (let i = 0; i < keys.length; i++) {
+        for (let i = 0; i < keys.length; i++)
             this.notifications.set(keys[i], new Notification(keys[i], values[i]));
-        }
     }
 
     public getChannel(channelID: string, guild: Guild): VoiceChannel {

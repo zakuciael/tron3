@@ -1,6 +1,6 @@
 import {SubCommand, Usage} from "../../commander/Command";
-import {ConfigManager} from "../../config/ConfigManager";
 import {EmbedBuilder} from "../../utils/EmbedBuilder";
+import {GuildConfig} from "../../config/GuildConfig";
 import {Message} from "discord.js";
 
 export class ResetSettingsSubCommand extends SubCommand {
@@ -11,7 +11,7 @@ export class ResetSettingsSubCommand extends SubCommand {
         description: "Resets settings to the default values"
     };
 
-    async execute(msg: Message, args: string[], config: ConfigManager): Promise<void> {
+    async execute(msg: Message, args: string[], config: GuildConfig): Promise<void> {
         const embed = EmbedBuilder.getSuccessCommandEmbed(msg.member!);
         embed.setTitle("Settings reset!");
         embed.setDescription("All settings has been set to default values");
@@ -20,7 +20,7 @@ export class ResetSettingsSubCommand extends SubCommand {
         msg.channel.send({ embed });
     }
 
-    async validate(msg: Message, args: string[], config: ConfigManager): Promise<boolean> {
+    async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return true;
     }
 }

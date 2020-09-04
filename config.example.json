@@ -1,6 +1,10 @@
 {
   "token": "<DISCORD TOKEN GOES HERE>",
-  "ignore_dnd": false,
-  "prefix": "<BOT PREFIX>",
-  "notifications": {}
+  "guilds": {
+    "<GUILD_ID>": {
+      "prefix": "<BOT PREFIX>",
+      "ignore_dnd": false,
+      "notifications": {}
+    }
+  }
 }

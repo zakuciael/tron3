@@ -1,6 +1,6 @@
 import {SubCommand, Usage} from "../../commander/Command";
-import {ConfigManager} from "../../config/ConfigManager";
 import {EmbedBuilder} from "../../utils/EmbedBuilder";
+import {GuildConfig} from "../../config/GuildConfig";
 import {Message} from "discord.js";
 
 export class IgnoreDndSettingsSubCommand extends SubCommand {
@@ -11,19 +11,19 @@ export class IgnoreDndSettingsSubCommand extends SubCommand {
         description: "Toggles on and off setting to ignore dnd status when notifying"
     };
 
-    async execute(msg: Message, args: string[], config: ConfigManager): Promise<void> {
+    async execute(msg: Message, args: string[], config: GuildConfig): Promise<void> {
         const embed = EmbedBuilder.getSuccessCommandEmbed(msg.member!);
         const enabled = args[0].toLowerCase() === "on";
         embed.setTitle("Ignore DND setting changed!");
         embed.setDescription(`New setting is **${enabled ? "enabled" : "disabled"}**`);
 
         config.setIgnoreDND(enabled);
-        await config.save();
+        await config.getConfigManager().save();
 
         msg.channel.send({ embed });
     }
 
-    async validate(msg: Message, args: string[], config: ConfigManager): Promise<boolean> {
+    async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return args.length === 1 && ["on", "off"].includes(args[0].toLowerCase());
     }
 }

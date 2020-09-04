@@ -1,6 +1,6 @@
 import {SubCommand, Usage} from "../../commander/Command";
-import {ConfigManager} from "../../config/ConfigManager";
 import {EmbedBuilder} from "../../utils/EmbedBuilder";
+import {GuildConfig} from "../../config/GuildConfig";
 import {Message} from "discord.js";
 
 export class RemoveNotifySubCommand extends SubCommand {
@@ -11,7 +11,7 @@ export class RemoveNotifySubCommand extends SubCommand {
         description: "Removes notifications for specified channel/s to all given roles/users"
     };
 
-    async execute(msg: Message, args: string[], config: ConfigManager): Promise<void> {
+    async execute(msg: Message, args: string[], config: GuildConfig): Promise<void> {
         const applyToAllChannels = args[0] === "all";
         const notifications = config.getNotificationManager()
             .filter(notification => applyToAllChannels || notification.getChannelID() === args[0]);
@@ -52,11 +52,11 @@ export class RemoveNotifySubCommand extends SubCommand {
             rolesToRemove?.forEach(role => notification?.removeRole(role));
         });
 
-        await config.save();
+        await config.getConfigManager().save();
         msg.channel.send({ embed });
     }
 
-    async validate(msg: Message, args: string[], config: ConfigManager): Promise<boolean> {
+    async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return msg.mentions.roles.size > 0 || msg.mentions.users.size > 0;
     }
 }

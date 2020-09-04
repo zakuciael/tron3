@@ -1,6 +1,6 @@
 import {Command, SubCommand, Usage} from "../commander/Command";
-import {ConfigManager} from "../config/ConfigManager";
 import {EmbedBuilder} from "../utils/EmbedBuilder";
+import {GuildConfig} from "../config/GuildConfig";
 import {Commander} from "../commander/Commander";
 import {Message} from "discord.js";
 
@@ -11,7 +11,7 @@ export class HelpCommand extends Command {
         description: "Prints help message for command/s"
     };
 
-    async execute(msg: Message, args: string[], config: ConfigManager, commander: Commander): Promise<void> {
+    async execute(msg: Message, args: string[], config: GuildConfig, commander: Commander): Promise<void> {
         const cmdName = args[0];
         let commands: (Command | SubCommand)[];
 
@@ -29,7 +29,7 @@ export class HelpCommand extends Command {
         msg.channel.send({ embed });
     }
 
-    async validate(msg: Message, args: string[], config: ConfigManager): Promise<boolean> {
+    async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return args.length === 0 || args.length === 1;
     }
 }

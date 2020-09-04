@@ -55,8 +55,11 @@ export class Commander {
         });
     }
 
-    public async handle(msg: Message, config: ConfigManager): Promise<void> {
+    public async handle(msg: Message, manager: ConfigManager): Promise<void> {
+        if (msg.channel.type !== "text") return;
         if (msg.author.bot) return;
+
+        const config = manager.getGuildConfig(msg.guild?.id!);
         if (!msg.content.startsWith(config.getPrefix())) return;
 
         if (!msg.member?.hasPermission("ADMINISTRATOR")) {
@@ -101,11 +104,11 @@ export class Commander {
             .catch(e => this.logger.error(e, "validating command execution"));
 
         if (valid)
-            await cmd.execute(msg, args, config, this)
+            cmd.execute(msg, args, config, this)
                 .catch(e => this.logger.error(e, "executing command"));
         else {
             this.logger.warn(`${Commander.getUsername(msg)} sent invalid command: ${msg.cleanContent}`);
-            msg.channel.send({ embed: EmbedBuilder.getInvalidCommandEmbed([cmd.usage]) });
+            msg.channel.send({embed: EmbedBuilder.getInvalidCommandEmbed([cmd.usage])}).then(() => {});
         }
     }
 
