@@ -1,5 +1,5 @@
 import {Command, SubCommand, Usage} from "../commander/Command";
-import {ConfigManager} from "../utils/ConfigManager";
+import {ConfigManager} from "../config/ConfigManager";
 import {EmbedBuilder} from "../utils/EmbedBuilder";
 import {Commander} from "../commander/Commander";
 import {Message} from "discord.js";

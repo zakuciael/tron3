@@ -1,5 +1,5 @@
 import {NotificationManger} from "./NotificationManger";
-import {AsyncUtils} from "./AsyncUtils";
+import {AsyncUtils} from "../utils/AsyncUtils";
 import {Config} from "../types/Config";
 import {PathLike} from "fs";
 

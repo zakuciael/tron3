@@ -1,4 +1,4 @@
-import {ConfigManager} from "./utils/ConfigManager";
+import {ConfigManager} from "./config/ConfigManager";
 import {Commander} from "./commander/Commander";
 import {Logger} from "colored-logs";
 import {Client} from "discord.js";

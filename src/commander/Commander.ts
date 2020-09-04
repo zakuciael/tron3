@@ -1,4 +1,4 @@
-import {ConfigManager} from "../utils/ConfigManager";
+import {ConfigManager} from "../config/ConfigManager";
 import {Message, MessageMentions} from "discord.js";
 import {EmbedBuilder} from "../utils/EmbedBuilder";
 import {Command, SubCommand} from "./Command";

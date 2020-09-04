@@ -1,4 +1,4 @@
-import {ConfigManager} from "../utils/ConfigManager";
+import {ConfigManager} from "../config/ConfigManager";
 import {Commander} from "./Commander";
 import {Message} from "discord.js";
 
