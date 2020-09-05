@@ -45,6 +45,8 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             notification.getExcludedMembers(newState.guild!)
                 .find(m => member.id === m.id) === undefined
         ).filter(member =>
+            !newState.channel?.members.has(member.id)
+        ).filter(member =>
             config.isIgnoringDNDs() ||
             member.user.presence.status !== "dnd"
         );
