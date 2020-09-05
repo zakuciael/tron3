@@ -57,11 +57,13 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
 
     logger.debug("Setting up guild create handler...");
     bot.on("guildCreate", guild => {
+        logger.info(`Joined new guild: ${guild.name}`);
         configManager.addGuildConfig(guild.id, GuildConfig.createDefault(configManager));
     });
 
     logger.debug("Setting up guild delete handler...");
     bot.on("guildDelete", guild => {
+        logger.info(`Left guild: ${guild.name}`);
         configManager.removeGuildConfig(guild.id);
     });
 
