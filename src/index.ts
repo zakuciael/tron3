@@ -43,6 +43,8 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             ...notification.getMembers(newState.guild!),
             ...notification.getMembersFromRoles(newState.guild!)
         ].filter(member =>
+            !member.user.bot
+        ).filter(member =>
             notification.getExcludedMembers(newState.guild!)
                 .find(m => member.id === m.id) === undefined
         ).filter(member =>
