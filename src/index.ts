@@ -33,6 +33,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
     logger.debug("Setting up voice state update handler...");
     bot.on("voiceStateUpdate", (oldState, newState) => {
         if (!newState.channelID) return;
+        if (newState.member?.user.bot) return;
 
         const config = configManager.getGuildConfig(newState.guild.id);
         const notification = config.getNotificationManager().get(newState.channelID);
