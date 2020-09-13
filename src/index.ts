@@ -32,11 +32,16 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
 
     logger.debug("Setting up voice state update handler...");
     bot.on("voiceStateUpdate", (oldState, newState) => {
-        if (!newState.channelID) return;
         if (newState.member?.user.bot) return;
+        for (let change of ["deaf", "mute", "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute"]) {
+            // @ts-ignore
+            if (oldState[change] !== newState[change]) return;
+        }
+
+        if (oldState.channelID !== null && newState.channelID === null) return;
 
         const config = configManager.getGuildConfig(newState.guild.id);
-        const notification = config.getNotificationManager().get(newState.channelID);
+        const notification = config.getNotificationManager().get(newState.channelID!);
         if (!notification) return;
 
         const members = [
@@ -59,7 +64,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
         members.forEach(async member => {
             if (member.id == newState.member?.id) return;
             (await member.user.createDM()).send(`**${newState.member?.displayName}** has joined **${newState.channel?.name}**`);
-        })
+        });
     });
 
     logger.debug("Setting up guild create handler...");
