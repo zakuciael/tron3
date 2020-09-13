@@ -54,6 +54,8 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             member.user.presence.status !== "dnd"
         );
 
+        logger.info(`User ${newState.member?.displayName} joined channel ${newState.channel?.name} notifying ${members.length} member${members.length == 1 ? "" : "s"}.`);
+
         members.forEach(async member => {
             if (member.id == newState.member?.id) return;
             (await member.user.createDM()).send(`**${newState.member?.displayName}** has joined **${newState.channel?.name}**`);

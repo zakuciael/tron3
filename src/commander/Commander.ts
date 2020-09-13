@@ -62,6 +62,8 @@ export class Commander {
         const config = manager.getGuildConfig(msg.guild?.id!);
         if (!msg.content.startsWith(config.getPrefix())) return;
 
+        this.logger.info(`Received command ${msg.cleanContent} from user ${Commander.getUsername(msg)}`);
+
         if (!msg.member?.hasPermission("ADMINISTRATOR")) {
             this.logger.warn(`${Commander.getUsername(msg)} tried to talk to bot, but doesn't have permissions to do so.`)
             return;
