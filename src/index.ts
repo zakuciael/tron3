@@ -63,7 +63,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
 
         members.forEach(async member => {
             if (member.id == newState.member?.id) return;
-            (await member.user.createDM()).send(`**${newState.member?.displayName}** has joined **${newState.channel?.name}**`);
+            (await member.user.createDM()).send(`**${newState.member?.displayName}** has joined **${newState.channel?.name}** in **${newState.guild.name}** server.`);
         });
     });
 
