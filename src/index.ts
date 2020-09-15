@@ -35,11 +35,12 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
         if (newState.member?.user.bot) return;
         for (let change of ["deaf", "mute", "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute"]) {
             // @ts-ignore
-            if (oldState[change] !== newState[change]) return;
+            if (oldState[change] !== undefined && oldState[change] !== newState[change]) {
+                return;
+            }
         }
 
         if (oldState.channelID !== null && newState.channelID === null) return;
-
         const config = configManager.getGuildConfig(newState.guild.id);
         const notification = config.getNotificationManager().get(newState.channelID!);
         if (!notification) return;
