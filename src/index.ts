@@ -3,6 +3,7 @@ import {Commander} from "./commander/Commander";
 import {Logger} from "colored-logs";
 import {Client} from "discord.js";
 import {GuildConfig} from "./config/GuildConfig";
+import {EventType} from "./types/EventType";
 
 const configPath: string = process.env.CONFIG_PATH || "./config.json";
 const commandsPath: string = process.env.COMMANDS_PATH || "./src/commands";
@@ -40,10 +41,28 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             }
         }
 
-        if (oldState.channelID !== null && newState.channelID === null) return;
+        let eventType: EventType;
+        if (!oldState.streaming && newState.streaming) {
+            eventType = EventType.START_STREAM;
+        } else if ((oldState.channelID !== undefined && oldState.channelID !== null) && oldState.streaming && !newState.streaming) {
+            eventType = EventType.END_STREAM;
+        } else if ((oldState.channelID === undefined || oldState.channelID === null) && (newState.channelID !== undefined && newState.channelID !== null)) {
+            eventType = EventType.JOIN_CHANNEL;
+        } else if ((newState.channelID === undefined || newState.channelID === null) && (oldState.channelID !== undefined && oldState.channelID !== null)) {
+            eventType = EventType.LEAVE_CHANNEL;
+        } else {
+            eventType = EventType.SWITCH_CHANNEL;
+        }
+
+        logger.debug(`Detected event change for user "${newState.member?.displayName}" new value is ${Object.keys(EventType)[(Object.keys(EventType).length / 2) + eventType]}`);
+        if (eventType === EventType.LEAVE_CHANNEL) return;
+
         const config = configManager.getGuildConfig(newState.guild.id);
         const notification = config.getNotificationManager().get(newState.channelID!);
-        if (!notification) return;
+        if (!notification) {
+            logger.debug(`No notification settings detected for "${newState.channelID}" channel, skipping...`);
+            return;
+        }
 
         const members = [
             ...notification.getMembers(newState.guild!),
@@ -60,11 +79,17 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             member.user.presence.status !== "dnd"
         );
 
-        logger.info(`User ${newState.member?.displayName} joined channel ${newState.channel?.name} notifying ${members.length} member${members.length == 1 ? "" : "s"}.`);
+        logger.debug(`Notification found, notifying ${members.length} member${members.length == 1 ? "" : "s"}`)
 
         members.forEach(async member => {
-            if (member.id == newState.member?.id) return;
-            (await member.user.createDM()).send(`**${newState.member?.displayName}** has joined **${newState.channel?.name}** in **${newState.guild.name}** server.`);
+            if (member.id == newState.member?.id) return
+            const channel = await member.user.createDM();
+
+            if (eventType === EventType.JOIN_CHANNEL) {
+                channel.send(`<@${newState.member?.id}> joined **${newState.channel?.name}** in **${newState.guild.name}**`);
+            } else if (eventType === EventType.START_STREAM) {
+                channel.send(`<@${newState.member?.id}> started streaming in **${newState.guild.name}**`);
+            }
         });
     });
 
