@@ -13,14 +13,6 @@ export class EmbedBuilder {
         return embed;
     }
 
-    public static getSuccessCommandEmbed(member: GuildMember): MessageEmbed {
-        return EmbedBuilder.getCommandEmbed(member).setColor("#2ecc71");
-    }
-
-    public static getErrorCommandEmbed(member: GuildMember): MessageEmbed {
-        return EmbedBuilder.getCommandEmbed(member).setColor("#e74c3c");
-    }
-
     public static getInvalidCommandEmbed(usages: Usage[]): MessageEmbed {
         const embed = new MessageEmbed();
 
@@ -31,5 +23,13 @@ export class EmbedBuilder {
         usages.forEach(usage => embed.addField(usage.syntax, usage.description))
 
         return embed;
+    }
+
+    public static getSuccessCommandEmbed(member: GuildMember): MessageEmbed {
+        return EmbedBuilder.getCommandEmbed(member).setColor("#2ecc71");
+    }
+
+    public static getErrorCommandEmbed(member: GuildMember): MessageEmbed {
+        return EmbedBuilder.getCommandEmbed(member).setColor("#e74c3c");
     }
 }
