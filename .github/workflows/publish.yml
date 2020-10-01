@@ -44,6 +44,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GCR_PAT }}
+      - name: Install Node.js dependencies
+        run: yarn install
+      - name: Build package
+        run: yarn build
       - name: Build image
         uses: docker/build-push-action@v2
         with:
