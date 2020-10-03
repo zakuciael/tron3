@@ -86,9 +86,9 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             const channel = await member.user.createDM();
 
             if (eventType === EventType.JOIN_CHANNEL) {
-                channel.send(`<@${newState.member?.id}> joined **${newState.channel?.name}** in **${newState.guild.name}**`);
+                channel.send(`**${newState.member?.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**`);
             } else if (eventType === EventType.START_STREAM) {
-                channel.send(`<@${newState.member?.id}> started streaming in **${newState.guild.name}**`);
+                channel.send(`**${newState.member?.displayName}** started streaming in **${newState.guild.name}**`);
             }
         });
     });
