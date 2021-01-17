@@ -65,12 +65,12 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
         }
 
         const members = [
-            ...notification.getMembers(newState.guild!),
-            ...notification.getMembersFromRoles(newState.guild!)
+            ...(await notification.getMembers(newState.guild!)),
+            ...(await notification.getMembersFromRoles(newState.guild!))
         ].filter(member =>
             !member.user.bot
-        ).filter(member =>
-            notification.getExcludedMembers(newState.guild!)
+        ).filter(async (member) =>
+            (await notification.getExcludedMembers(newState.guild!))
                 .find(m => member.id === m.id) === undefined
         ).filter(member =>
             !newState.channel?.members.has(member.id)

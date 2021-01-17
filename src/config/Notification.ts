@@ -15,7 +15,7 @@ export class Notification {
     }
 
     public getChannel(guild: Guild): GuildChannel {
-        return guild.channels.cache.find(ch => ch.type === "voice" && ch.id === this.channelID)!;
+        return guild.channels.resolve(this.channelID)!;
     }
 
     public addRole(role: Role) : void {
@@ -26,8 +26,10 @@ export class Notification {
         this.notification.roles.splice(this.notification.roles.indexOf(role.id), 1);
     }
 
-    public getRoles(guild: Guild): Role[] {
-        return this.notification.roles.map(id => guild.roles.resolve(id)!);
+    public getRoles(guild: Guild): Promise<Role[]> {
+        return Promise.all(this.notification.roles.map(id => {
+            return guild.roles.fetch(id) as Promise<Role>;
+        }));
     }
 
     public addMember(member: GuildMember): void {
@@ -38,8 +40,8 @@ export class Notification {
         this.notification.users.splice(this.notification.users.indexOf(member.id), 1);
     }
 
-    public getMembers(guild: Guild) : GuildMember[] {
-        return this.notification.users.map(id => guild.members.resolve(id)!);
+    public getMembers(guild: Guild): Promise<GuildMember[]> {
+        return guild.members.fetch({ user: this.notification.users, withPresences: true }).then(col => col.array());
     }
 
     public addExcludedMember(member: GuildMember): void {
@@ -50,15 +52,15 @@ export class Notification {
         this.notification.excluded_users.splice(this.notification.excluded_users.indexOf(member.id), 1);
     }
 
-    public getExcludedMembers(guild: Guild): GuildMember[] {
-        return this.notification.excluded_users.map(id => guild.members.resolve(id)!);
+    public getExcludedMembers(guild: Guild): Promise<GuildMember[]> {
+        return guild.members.fetch({ user: this.notification.excluded_users, withPresences: true }).then(col => col.array());
     }
 
-    public getMembersFromRoles(guild: Guild): GuildMember[] {
-        return this.getRoles(guild).map(role => role?.members.array()).reduce((acc, curr) => {
+    public getMembersFromRoles(guild: Guild): Promise<GuildMember[]> {
+        return this.getRoles(guild).then(roles => roles.map(role => role?.members.array()).reduce((acc, curr) => {
             acc?.push(...curr!);
             return acc;
-        }, [])!;
+        }, [])!);
     }
 
     public toSetting(): NotificationSettings {

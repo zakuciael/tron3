@@ -28,7 +28,7 @@ export class RemoveNotifySubCommand extends SubCommand {
                 "Could not find notification for specified channel"
             );
 
-            msg.channel.send({ embed });
+            await msg.channel.send({ embed });
             return;
         }
 
@@ -37,10 +37,12 @@ export class RemoveNotifySubCommand extends SubCommand {
         embed.setDescription(`**Members:** ${members?.size > 0  ? members?.array().join(", ") : "None"}
                     **Roles:** ${roles.size > 0 ? roles.array().join(", ") : "None"}`);
 
-        channels.forEach(channel => {
+        for (const channel of channels) {
             const notification = notifications.find(notification => notification.getChannelID() === channel.id);
-            const membersToRemove = notification?.getMembers(msg.guild!).filter(member => members.has(member.id));
-            const rolesToRemove = notification?.getRoles(msg.guild!).filter(role => roles.has(role.id));
+            if (!notification) continue;
+
+            const membersToRemove = (await notification.getMembers(msg.guild!)).filter(member => members.has(member.id));
+            const rolesToRemove = (await notification?.getRoles(msg.guild!)).filter(role => roles.has(role.id));
 
             embed.addField(
                 `:microphone2: **${channel.name}**`,
@@ -50,10 +52,10 @@ export class RemoveNotifySubCommand extends SubCommand {
 
             membersToRemove?.forEach(member => notification?.removeMember(member));
             rolesToRemove?.forEach(role => notification?.removeRole(role));
-        });
+        }
 
         await config.getConfigManager().save();
-        msg.channel.send({ embed });
+        await msg.channel.send({ embed });
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {

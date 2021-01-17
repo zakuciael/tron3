@@ -26,16 +26,18 @@ export class IgnoreCommand extends Command {
                 "Could not find notification for specified channel"
             );
 
-            msg.channel.send({ embed });
+            await msg.channel.send({ embed });
             return;
         }
 
         const embed = EmbedBuilder.getSuccessCommandEmbed(msg.member!);
         embed.setTitle(`Notification${applyToAllChannels ? "s" : ""} ignored!`);
 
-        channels.forEach(channel => {
+        for (const channel of channels) {
             const notification = notifications.find(notification => notification.getChannelID() === channel.id);
-            const found = notification?.getExcludedMembers(msg.guild!).find(member => member.id === msg.member?.id);
+            if (!notification) continue;
+
+            const found = (await notification.getExcludedMembers(msg.guild!)).find(member => member.id === msg.member?.id);
 
             embed.addField(
                 `:microphone2: **${channel.name}**`,
@@ -45,10 +47,10 @@ export class IgnoreCommand extends Command {
 
             if(enabled && !found) notification?.addExcludedMember(msg.member!);
             else if (!enabled && found) notification?.removeExcludedMember(msg.member!)
-        });
+        }
 
         await config.getConfigManager().save();
-        msg.channel.send({ embed });
+        await msg.channel.send({ embed });
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {

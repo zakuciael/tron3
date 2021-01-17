@@ -21,21 +21,26 @@ export default class SettingsCommand extends Command {
             false
         )
 
-        config.getNotificationManager().forEach((notification, channelID) => {
-            const excludedMembers = notification.getExcludedMembers(msg.guild!);
-            const members = notification.getMembers(msg.guild!);
-            const roles = notification.getRoles(msg.guild!);
+        for (let channelID in config.getNotificationManager().toMap()) {
+            // noinspection JSUnfilteredForInLoop
+            const notification = config.getNotificationManager().get(channelID);
+            if (!notification) continue;
 
+            const excludedMembers = await notification.getExcludedMembers(msg.guild!);
+            const members = await notification.getMembers(msg.guild!);
+            const roles = await notification.getRoles(msg.guild!);
+
+            // noinspection JSUnfilteredForInLoop
             embed.addField(
-                `:microphone2: **${config.getNotificationManager().getChannel(channelID!, msg.guild!).name}**`,
+                `:microphone2: **${config.getNotificationManager().getChannel(channelID, msg.guild!).name}**`,
                 `**Members:** ${members.length > 0  ? members.join(", ") : "None"}
                     **Roles:** ${roles.length > 0 ? roles.join(", ") : "None"}
                     **Excluded Members:** ${excludedMembers.length > 0  ? excludedMembers.join(", ") : "None"}`,
                 true
             )
-        });
+        }
 
-        msg.channel.send({ embed });
+        await msg.channel.send({ embed });
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
