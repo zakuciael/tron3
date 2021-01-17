@@ -32,7 +32,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
     bot.on("message", async msg => commander.handle(msg, configManager));
 
     logger.debug("Setting up voice state update handler...");
-    bot.on("voiceStateUpdate", (oldState, newState) => {
+    bot.on("voiceStateUpdate", async (oldState, newState) => {
         if (newState.member?.user.bot) return;
         for (let change of ["deaf", "mute", "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute"]) {
             // @ts-ignore
@@ -55,12 +55,12 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
         }
 
         logger.debug(`Detected event change for user "${newState.member?.displayName}" new value is ${Object.keys(EventType)[(Object.keys(EventType).length / 2) + eventType]}`);
-        if (eventType === EventType.LEAVE_CHANNEL) return;
+        if (eventType === EventType.LEAVE_CHANNEL || eventType === EventType.END_STREAM) return;
 
         const config = configManager.getGuildConfig(newState.guild.id);
         const notification = config.getNotificationManager().get(newState.channelID!);
         if (!notification) {
-            logger.debug(`No notification settings detected for "${newState.channelID}" channel, skipping...`);
+            logger.debug(`No notification settings found for channel "${newState.channel?.name}" (${newState.channelID})`);
             return;
         }
 
@@ -76,21 +76,29 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             !newState.channel?.members.has(member.id)
         ).filter(member =>
             config.isIgnoringDNDs() ||
-            member.user.presence.status !== "dnd"
+            member.presence.status !== "dnd"
         );
 
-        logger.debug(`Notification found, notifying ${members.length} member${members.length == 1 ? "" : "s"}`)
+        logger.info(`Notifying ${members.length} member${members.length == 1 ? "" : "s"} in ${newState.guild.name}`);
 
-        members.forEach(async member => {
-            if (member.id == newState.member?.id) return
+        for (let i = 0; i < members.length; i++){
+            let member = members[i];
+            if (member.id == newState.member?.id) continue;
             const channel = await member.user.createDM();
 
-            if (eventType === EventType.JOIN_CHANNEL) {
-                channel.send(`**${newState.member?.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**`);
+            logger.debug(`Sending notification to ${member.displayName}
+            Bot: ${member.user.bot}
+            Status: ${member.presence.status}
+            Excluded: ${(await notification.getExcludedMembers(newState.guild)).findIndex(m => m.id === member.id) > -1}
+            In channel: ${newState.channel?.members.has(member.id)}
+            `);
+
+            if (eventType === EventType.JOIN_CHANNEL || eventType === EventType.SWITCH_CHANNEL) {
+                await channel.send(`**${newState.member?.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**`);
             } else if (eventType === EventType.START_STREAM) {
-                channel.send(`**${newState.member?.displayName}** started streaming in **${newState.guild.name}**`);
+                await channel.send(`**${newState.member?.displayName}** started streaming in **${newState.guild.name}**`);
             }
-        });
+        }
     });
 
     logger.debug("Setting up guild create handler...");
@@ -120,5 +128,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
         }
     });
     await configManager.save();
-    logger.debug(`Added ${count} missing guild configurations!`);
+
+    if (count > 0) logger.debug(`Added ${count} missing guild configurations!`);
+    else logger.debug(`No missing guild configurations found!`);
 })();
