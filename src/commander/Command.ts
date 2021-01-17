@@ -10,8 +10,8 @@ export interface Usage {
 export abstract class Command {
     public abstract command: string;
     public abstract usage: Usage;
-    public abstract async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean>;
-    public abstract async execute(msg: Message, args: string[], config: GuildConfig, commander: Commander): Promise<void>;
+    public abstract validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean>;
+    public abstract execute(msg: Message, args: string[], config: GuildConfig, commander: Commander): Promise<void>;
 }
 
 export abstract class SubCommand extends Command {
