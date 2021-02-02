@@ -33,6 +33,11 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
 
     logger.debug("Setting up voice state update handler...");
     bot.on("voiceStateUpdate", async (oldState, newState) => {
+        logger.debug(`Received "voiceStateUpdate" event.
+        Old State: ${JSON.stringify(oldState)}
+        New State: ${JSON.stringify(newState)}
+        `);
+
         if (newState.member?.user.bot) return;
         for (let change of ["deaf", "mute", "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute"]) {
             // @ts-ignore
@@ -79,7 +84,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             member.presence.status !== "dnd"
         );
 
-        logger.info(`Notifying ${members.length} member${members.length == 1 ? "" : "s"} in ${newState.guild.name}`);
+        logger.info(`Notifying ${members.length} member${members.length == 1 ? "" : "s"} about user "${newState.member?.displayName}" in ${newState.guild.name}`);
 
         for (let i = 0; i < members.length; i++){
             let member = members[i];
