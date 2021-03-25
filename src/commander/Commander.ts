@@ -70,11 +70,13 @@ export class Commander {
         }
 
         const args = msg.content
-            .substr(config.getPrefix().length).split(/\s+/)
-            .filter(arg => !MessageMentions.CHANNELS_PATTERN.test(arg) &&
-                !MessageMentions.ROLES_PATTERN.test(arg) &&
-                !MessageMentions.USERS_PATTERN.test(arg) &&
-                !MessageMentions.EVERYONE_PATTERN.test(arg));
+            .substr(config.getPrefix().length)
+            .replace(MessageMentions.CHANNELS_PATTERN, "")
+            .replace(MessageMentions.USERS_PATTERN, "")
+            .replace(MessageMentions.ROLES_PATTERN, "")
+            .replace(MessageMentions.EVERYONE_PATTERN, "")
+            .trim().split(/\s+/);
+
         const cmdName = args.splice(0, 1)[0].toLowerCase();
         const cmds = this.commands
             .filter(settings => settings.cmd.command === cmdName)
