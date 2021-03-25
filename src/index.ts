@@ -86,12 +86,9 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             if (member.id == newState.member?.id) continue;
             const channel = await member.user.createDM();
 
-            logger.debug(`Sending notification to ${member.displayName}
-            Bot: ${member.user.bot}
-            Status: ${member.presence.status}
-            Excluded: ${(await notification.getExcludedMembers(newState.guild)).findIndex(m => m.id === member.id) > -1}
-            In channel: ${newState.channel?.members.has(member.id)}
-            `);
+            logger.debug(`Sending notification to ${member.displayName} (Status: ${member.presence.status} | Excluded: ${
+                (await notification.getExcludedMembers(newState.guild)).findIndex(m => m.id === member.id) > -1
+            })`);
 
             if (eventType === EventType.JOIN_CHANNEL || eventType === EventType.SWITCH_CHANNEL) {
                 await channel.send(`**${newState.member?.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**`);
