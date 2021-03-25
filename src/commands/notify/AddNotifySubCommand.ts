@@ -1,6 +1,7 @@
 import {SubCommand, Usage} from "../../commander/Command";
 import {EmbedBuilder} from "../../utils/EmbedBuilder";
 import {GuildConfig} from "../../config/GuildConfig";
+import {Commander} from "../../commander/Commander";
 import {Message} from "discord.js";
 
 export class AddNotifySubCommand extends SubCommand {
@@ -28,7 +29,7 @@ export class AddNotifySubCommand extends SubCommand {
                 "Could not find specified channel"
             );
 
-            msg.channel.send({ embed });
+            await msg.channel.send({ embed });
             return;
         }
 
@@ -54,10 +55,14 @@ export class AddNotifySubCommand extends SubCommand {
         });
 
         await config.getConfigManager().save();
-        msg.channel.send({ embed });
+        await msg.channel.send({ embed });
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return msg.mentions.roles.size > 0 || msg.mentions.users.size > 0;
+    }
+
+    async hasAccess(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
+        return Commander.isAdmin(msg, config);
     }
 }

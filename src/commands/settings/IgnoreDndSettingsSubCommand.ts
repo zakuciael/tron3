@@ -1,6 +1,7 @@
 import {SubCommand, Usage} from "../../commander/Command";
 import {EmbedBuilder} from "../../utils/EmbedBuilder";
 import {GuildConfig} from "../../config/GuildConfig";
+import {Commander} from "../../commander/Commander";
 import {Message} from "discord.js";
 
 export class IgnoreDndSettingsSubCommand extends SubCommand {
@@ -20,10 +21,14 @@ export class IgnoreDndSettingsSubCommand extends SubCommand {
         config.setIgnoreDND(enabled);
         await config.getConfigManager().save();
 
-        msg.channel.send({ embed });
+        await msg.channel.send({ embed });
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return args.length === 1 && ["on", "off"].includes(args[0].toLowerCase());
+    }
+
+    async hasAccess(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
+        return Commander.isAdmin(msg, config);
     }
 }

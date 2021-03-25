@@ -11,6 +11,7 @@ export abstract class Command {
     public abstract command: string;
     public abstract usage: Usage;
     public abstract validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean>;
+    public abstract hasAccess(msg: Message, args: string[], config: GuildConfig): Promise<boolean>;
     public abstract execute(msg: Message, args: string[], config: GuildConfig, commander: Commander): Promise<void>;
 }
 

@@ -1,6 +1,7 @@
 import {Command, Usage} from "../commander/Command";
 import {EmbedBuilder} from "../utils/EmbedBuilder";
 import {GuildConfig} from "../config/GuildConfig";
+import {Commander} from "../commander/Commander";
 import {Message} from "discord.js";
 
 export default class SettingsCommand extends Command {
@@ -11,13 +12,15 @@ export default class SettingsCommand extends Command {
     };
 
     async execute(msg: Message, args: string[], config: GuildConfig): Promise<void> {
+        const adminRoles = await config.getAdminRoles(msg.guild!);
         const embed = EmbedBuilder.getCommandEmbed(msg.member!);
         embed.setTitle("Bot Settings");
 
         embed.addField(
             `:gear: **Global Settings**`,
             `**Prefix:** ${config.getPrefix()}
-            **Ignores DND:** ${config.isIgnoringDNDs() ? "Yes" : "No"}`,
+            **Ignores DND:** ${config.isIgnoringDNDs() ? "Yes" : "No"}
+            **Admin Roles:** ${adminRoles.length === 0 ? "None" : adminRoles.join(", ")}`,
             false
         )
 
@@ -45,5 +48,9 @@ export default class SettingsCommand extends Command {
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return true;
+    }
+
+    async hasAccess(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
+        return Commander.isAdmin(msg, config);
     }
 }

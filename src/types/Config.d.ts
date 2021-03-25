@@ -3,6 +3,10 @@ export interface Config {
     guilds: GuildMap;
 }
 
+export interface GuildMap {
+    [key: string]: GuildSettings;
+}
+
 export interface NotificationMap {
     [key: string]: NotificationSettings;
 }
@@ -13,12 +17,9 @@ export interface NotificationSettings {
     excluded_users: string[];
 }
 
-export interface GuildMap {
-    [key: string]: GuildSettings;
-}
-
 export interface GuildSettings {
     prefix: string;
     ignore_dnd: boolean;
+    admin_roles: string[];
     notifications: NotificationMap;
 }

@@ -1,5 +1,6 @@
 import {ConfigManager} from "../config/ConfigManager";
-import {Message, MessageMentions} from "discord.js";
+import {Guild, GuildMember, Message, MessageMentions, Role, User} from "discord.js";
+import {GuildConfig} from "../config/GuildConfig";
 import {EmbedBuilder} from "../utils/EmbedBuilder";
 import {Command, SubCommand} from "./Command";
 import {FSWatcher, watch} from "chokidar";
@@ -62,12 +63,7 @@ export class Commander {
         const config = manager.getGuildConfig(msg.guild?.id!);
         if (!msg.content.startsWith(config.getPrefix())) return;
 
-        this.logger.info(`Received command ${msg.cleanContent} from user ${Commander.getUsername(msg)}`);
-
-        if (!msg.member?.hasPermission("ADMINISTRATOR")) {
-            this.logger.warn(`${Commander.getUsername(msg)} tried to talk to bot, but doesn't have permissions to do so.`)
-            return;
-        }
+        this.logger.info(`Received command message ${msg.cleanContent} from user ${Commander.resolveUsername(msg)}`);
 
         const args = msg.content
             .substr(config.getPrefix().length)
@@ -83,7 +79,7 @@ export class Commander {
             .map(settings => settings.cmd);
 
         if (cmds.length === 0) {
-            this.logger.warn(`${Commander.getUsername(msg)} tried to use command: "${msg.cleanContent}", but it doesn't exists`);
+            this.logger.warn(`${Commander.resolveUsername(msg)} tried to use command: "${msg.cleanContent}", but it doesn't exists`);
             return;
         }
 
@@ -98,30 +94,56 @@ export class Commander {
             cmd = cmds.find(cmd => cmd.command === cmdName && (cmd as SubCommand).subcommand === undefined);
 
         if (!cmd) {
-            this.logger.warn(`${Commander.getUsername(msg)} tried to use command: "${msg.cleanContent}", but it doesn't exists`);
+            this.logger.warn(`${Commander.resolveUsername(msg)} tried to use command: "${msg.cleanContent}", but it doesn't exists`);
             return;
         }
 
-        if (cmd instanceof SubCommand) args.splice(0, 1);
+        if (cmd instanceof SubCommand)
+            args.splice(0, 1);
 
-        const valid = await cmd.validate(msg, args, config)
-            .catch(e => this.logger.error(e, "validating command execution"));
-
-        if (valid)
-            cmd.execute(msg, args, config, this)
-                .catch(e => this.logger.error(e, "executing command"));
-        else {
-            this.logger.warn(`${Commander.getUsername(msg)} sent invalid command: ${msg.cleanContent}`);
+        if (!(await cmd.validate(msg, args, config))) {
+            this.logger.warn(`${Commander.resolveUsername(msg)} sent invalid command: ${msg.cleanContent}`);
             msg.channel.send({embed: EmbedBuilder.getInvalidCommandEmbed([cmd.usage])}).then(() => {});
+            return;
         }
+
+        if (!(await cmd.hasAccess(msg, args, config))) {
+            this.logger.warn(`${Commander.resolveUsername(msg)} tried to talk to bot, but doesn't have permissions to do so.`)
+            return;
+        }
+
+        cmd.execute(msg, args, config, this)
+            .catch(e => this.logger.error(e, "executing command"));
     }
 
     public getCommands(): (Command | SubCommand)[] {
         return this.commands.map(settings => settings.cmd);
     }
 
-    private static getUsername(msg: Message): string {
-        return `${msg.author.username}#${msg.author.discriminator}`;
+    public static resolveUsername(data: Message | GuildMember | User): string {
+        const author: User = data instanceof Message ? data.author :
+            data instanceof GuildMember ? data.user : data;
+
+        return `${author.username}#${author.discriminator}`;
+    }
+
+    public static resolveRoles(data: Message | GuildMember): Role[] {
+        const member: GuildMember = data instanceof Message ? data.member! : data;
+        return member.roles.cache.array();
+    }
+
+    public static resolveGuild(data: Message | GuildMember): Guild {
+        return data.guild!;
+    }
+
+    public static async isAdmin(data: Message | GuildMember, config: GuildConfig): Promise<boolean> {
+        const member: GuildMember = data instanceof Message ? data.member! : data;
+        const guild: Guild = this.resolveGuild(data);
+
+        const adminRoles: string[] = (await config.getAdminRoles(guild)).map(role => role.id);
+        const roles: string[] = this.resolveRoles(data).map(role => role.id);
+
+        return member.hasPermission("ADMINISTRATOR") || roles.some(id => adminRoles.includes(id));
     }
 
     private async loadCommand(file_path: string): Promise<string> {

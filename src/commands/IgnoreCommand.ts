@@ -57,4 +57,7 @@ export class IgnoreCommand extends Command {
         return args.length === 2 && ["on", "off"].includes(args[1].toLowerCase());
     }
 
+    async hasAccess(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
+        return true;
+    }
 }

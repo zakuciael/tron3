@@ -1,6 +1,7 @@
 import {SubCommand, Usage} from "../../commander/Command";
 import {EmbedBuilder} from "../../utils/EmbedBuilder";
 import {GuildConfig} from "../../config/GuildConfig";
+import {Commander} from "../../commander/Commander";
 import { Message } from "discord.js";
 
 export class RawSettingsSubCommand extends SubCommand {
@@ -19,11 +20,14 @@ export class RawSettingsSubCommand extends SubCommand {
         delete copy.token;
 
         embed.setDescription("```json\n" + JSON.stringify(copy, null, 2) + "\n```");
-        msg.channel.send({ embed });
-        return;
+        await msg.channel.send({ embed });
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return true;
+    }
+
+    async hasAccess(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
+        return Commander.isAdmin(msg, config);
     }
 }

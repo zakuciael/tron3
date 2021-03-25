@@ -1,6 +1,7 @@
 import {SubCommand, Usage} from "../../commander/Command";
 import {EmbedBuilder} from "../../utils/EmbedBuilder";
 import {GuildConfig} from "../../config/GuildConfig";
+import {Commander} from "../../commander/Commander";
 import {Message} from "discord.js";
 
 export class ChangePrefixSettingsSubCommand extends SubCommand {
@@ -19,10 +20,14 @@ export class ChangePrefixSettingsSubCommand extends SubCommand {
         config.setPrefix(args[0]);
         await config.getConfigManager().save();
 
-        msg.channel.send({ embed });
+        await msg.channel.send({ embed });
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return args.length === 1;
+    }
+
+    async hasAccess(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
+        return Commander.isAdmin(msg, config);
     }
 }

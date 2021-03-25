@@ -26,10 +26,14 @@ export class HelpCommand extends Command {
         embed.setDescription(`**Here are available commands:**`);
         commands.forEach(cmd => embed.addField(cmd.usage.syntax, cmd.usage.description));
 
-        msg.channel.send({ embed });
+        await msg.channel.send({ embed });
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
         return args.length === 0 || args.length === 1;
+    }
+
+    async hasAccess(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
+        return true;
     }
 }
