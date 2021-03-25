@@ -28,6 +28,7 @@ export class GuildConfig {
     public async reset(): Promise<void> {
         this.setPrefix("`");
         this.setIgnoreDND(false);
+        this.setAdminRoles([]);
         this.notificationManager.reset();
         await this.manager.save();
     }
@@ -56,6 +57,10 @@ export class GuildConfig {
         return Promise.all(this.settings.admin_roles.map(id => {
             return guild.roles.fetch(id) as Promise<Role>;
         }));
+    }
+
+    public setAdminRoles(roles: Role[]): void {
+        this.settings.admin_roles = roles.map(role => role.id);
     }
 
     public addAdminRole(role: Role): void {
