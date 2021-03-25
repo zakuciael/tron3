@@ -64,7 +64,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             return;
         }
 
-        const members = [
+        const members = [...new Set([
             ...(await notification.getMembers(newState.guild!)),
             ...(await notification.getMembersFromRoles(newState.guild!))
         ].filter(member =>
@@ -77,7 +77,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
         ).filter(member =>
             config.isIgnoringDNDs() ||
             member.presence.status !== "dnd"
-        );
+        ))];
 
         logger.info(`Notifying ${members.length} member${members.length == 1 ? "" : "s"} about user "${newState.member?.displayName}" in ${newState.guild.name}`);
 
