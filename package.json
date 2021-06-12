@@ -1,0 +1,38 @@
+{
+  "name": "tron3",
+  "version": "1.0.0",
+  "description": "A dead-simple voice channel notifications bot for your Discord server",
+  "main": "dist/index.js",
+  "repository": "https://github.com/zakuciael/tron3.git",
+  "author": "Krzysztof Saczuk <zakku@zakku.eu>",
+  "license": "AGPL-3.0-or-later",
+  "keywords": [
+    "bot",
+    "node",
+    "discord",
+    "discord-bot",
+    "tron",
+    "discord-js",
+    "tron3",
+    "notifications",
+    "slash-commands"
+  ],
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "discord.js": "13.0.0-dev.1816a93b1b1b2bae47e8651e76fa53699de8421d"
+  },
+  "devDependencies": {
+    "@types/node": "^15.12.4",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
+    "eslint": "^7.29.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "prettier": "^2.3.1",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.4"
+  }
+}

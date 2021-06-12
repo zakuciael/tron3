@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": [
+      "ES2020"
+    ],
+    "outDir": "dist/",
+    "rootDir": ".",
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "removeComments": true,
+    "downlevelIteration": true,
+    "strict": true,
+    "alwaysStrict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/",
+    ".eslintrc.js"
+  ],
+  "exclude": [
+    "node_modules/"
+  ]
+}

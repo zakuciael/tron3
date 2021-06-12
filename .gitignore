@@ -1,0 +1,35 @@
+### Node.js Basic Template template
+# Editors
+.vscode/
+.idea/
+
+# Project configurations
+!.idea/copyright/
+!.vscode/tasks.json
+!.vscode/launch.json
+!.run/
+
+# Common excluded directories
+node_modules/
+dist/
+logs/
+
+# File Wildcards
+*.tsbuildinfo
+*.log
+*.js
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Inclusions
+!.eslintrc.js
+!.prettierrc.js
+
+# Env files
+!.env.example
+.env*
+
