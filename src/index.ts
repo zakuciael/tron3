@@ -4,7 +4,6 @@ import {Logger} from "colored-logs";
 import {Client} from "discord.js";
 import {GuildConfig} from "./config/GuildConfig";
 import {EventType} from "./types/EventType";
-import {inspect} from "util";
 
 const configPath: string = process.env.CONFIG_PATH || "./config.json";
 const commandsPath: string = process.env.COMMANDS_PATH || "./src/commands";
@@ -23,7 +22,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
 
     const configManager = new ConfigManager(configPath);
     const commander = new Commander(commandsPath, logger);
-    const bot = new Client();
+    const bot = new Client({partials: ["GUILD_MEMBER"]});
 
     logger.info("Loading commands...");
     const cmdCount = await commander.load();
@@ -35,8 +34,8 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
     logger.debug("Setting up voice state update handler...");
     bot.on("voiceStateUpdate", async (oldState, newState) => {
         logger.debug("New voice state update detected printing states...");
-        logger.debug("Old State: ", inspect({...oldState, guild: undefined}, {depth: 1}));
-        logger.debug("New State: ", inspect({...newState, guild: undefined}, {depth: 1}));
+        console.log("Old State: ", oldState);
+        console.log("New State: ", newState);
 
         if (newState.member?.user.bot) return;
         for (let change of ["deaf", "mute", "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute"]) {

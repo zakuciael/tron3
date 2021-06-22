@@ -18,7 +18,7 @@ export class RemoveNotifySubCommand extends SubCommand {
             .filter(notification => applyToAllChannels || notification.getChannelID() === args[0]);
         const channels = notifications
             .map(notification => notification.getChannel(msg.guild!));
-        const members = msg.mentions.members!;
+        const members = await Promise.all(msg.mentions.members!.map(member => member.partial ? member.fetch() : Promise.resolve(member)));
         const roles = msg.mentions.roles;
 
         if (notifications.length === 0) {
@@ -29,20 +29,20 @@ export class RemoveNotifySubCommand extends SubCommand {
                 "Could not find notification for specified channel"
             );
 
-            await msg.channel.send({ embed });
+            await msg.channel.send({embed});
             return;
         }
 
         const embed = EmbedBuilder.getSuccessCommandEmbed(msg.member!);
         embed.setTitle(`Notification${applyToAllChannels ? "s" : ""} removed!`);
-        embed.setDescription(`**Members:** ${members?.size > 0  ? members?.array().join(", ") : "None"}
+        embed.setDescription(`**Members:** ${members.length > 0 ? members.join(", ") : "None"}
                     **Roles:** ${roles.size > 0 ? roles.array().join(", ") : "None"}`);
 
         for (const channel of channels) {
             const notification = notifications.find(notification => notification.getChannelID() === channel.id);
             if (!notification) continue;
 
-            const membersToRemove = (await notification.getMembers(msg.guild!)).filter(member => members.has(member.id));
+            const membersToRemove = (await notification.getMembers(msg.guild!)).filter(member => members.findIndex(m => m.id === member.id) > -1);
             const rolesToRemove = (await notification?.getRoles(msg.guild!)).filter(role => roles.has(role.id));
 
             embed.addField(
@@ -56,7 +56,7 @@ export class RemoveNotifySubCommand extends SubCommand {
         }
 
         await config.getConfigManager().save();
-        await msg.channel.send({ embed });
+        await msg.channel.send({embed});
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {

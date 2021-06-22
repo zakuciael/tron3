@@ -18,7 +18,7 @@ export class AddNotifySubCommand extends SubCommand {
             [...msg.guild?.channels.cache.filter(channel => channel.type === "voice").array()!] :
             [msg.guild?.channels.resolve(args[0])!])
             .filter(channel => channel !== null && channel !== undefined);
-        const members = msg.mentions.members!;
+        const members = await Promise.all(msg.mentions.members!.map(member => member.partial ? member.fetch() : Promise.resolve(member)));
         const roles = msg.mentions.roles;
 
         if (channels.length <= 0) {
@@ -29,13 +29,13 @@ export class AddNotifySubCommand extends SubCommand {
                 "Could not find specified channel"
             );
 
-            await msg.channel.send({ embed });
+            await msg.channel.send({embed});
             return;
         }
 
         const embed = EmbedBuilder.getSuccessCommandEmbed(msg.member!);
         embed.setTitle(`Notification${applyToAllChannels ? "s" : ""} added!`);
-        embed.setDescription(`**Members:** ${members?.size > 0  ? members?.array().join(", ") : "None"}
+        embed.setDescription(`**Members:** ${members.length > 0 ? members.join(", ") : "None"}
                     **Roles:** ${roles.size > 0 ? roles.array().join(", ") : "None"}`);
 
         channels.forEach(channel => {
@@ -55,7 +55,7 @@ export class AddNotifySubCommand extends SubCommand {
         });
 
         await config.getConfigManager().save();
-        await msg.channel.send({ embed });
+        await msg.channel.send({embed});
     }
 
     async validate(msg: Message, args: string[], config: GuildConfig): Promise<boolean> {
