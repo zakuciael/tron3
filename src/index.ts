@@ -4,6 +4,7 @@ import {Logger} from "colored-logs";
 import {Client} from "discord.js";
 import {GuildConfig} from "./config/GuildConfig";
 import {EventType} from "./types/EventType";
+import {inspect} from "util";
 
 const configPath: string = process.env.CONFIG_PATH || "./config.json";
 const commandsPath: string = process.env.COMMANDS_PATH || "./src/commands";
@@ -33,6 +34,10 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
 
     logger.debug("Setting up voice state update handler...");
     bot.on("voiceStateUpdate", async (oldState, newState) => {
+        logger.debug("New voice state update detected printing states...");
+        logger.debug("Old State: ", inspect({...oldState, guild: undefined}, {depth: 1}));
+        logger.debug("New State: ", inspect({...newState, guild: undefined}, {depth: 1}));
+
         if (newState.member?.user.bot) return;
         for (let change of ["deaf", "mute", "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute"]) {
             // @ts-ignore
@@ -81,7 +86,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
 
         logger.info(`Notifying ${members.length} member${members.length == 1 ? "" : "s"} about user "${newState.member?.displayName}" in ${newState.guild.name}`);
 
-        for (let i = 0; i < members.length; i++){
+        for (let i = 0; i < members.length; i++) {
             let member = members[i];
             if (member.id == newState.member?.id) continue;
             const channel = await member.user.createDM();
