@@ -37,7 +37,9 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
         console.log("Old State: ", oldState);
         console.log("New State: ", newState);
 
-        if (newState.member?.user.bot) return;
+        const member = await (newState.member?.partial ? newState.member.fetch() : Promise.resolve(newState.member!));
+
+        if (member.user.bot) return;
         for (let change of ["deaf", "mute", "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute"]) {
             // @ts-ignore
             if (oldState[change] != undefined && oldState[change] !== newState[change]) {
@@ -58,7 +60,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             eventType = EventType.SWITCH_CHANNEL;
         }
 
-        logger.debug(`Detected event change for user "${newState.member?.displayName}" new value is ${Object.keys(EventType)[(Object.keys(EventType).length / 2) + eventType]}`);
+        logger.debug(`Detected event change for user "${member.displayName}" new value is ${Object.keys(EventType)[(Object.keys(EventType).length / 2) + eventType]}`);
         if (eventType === EventType.LEAVE_CHANNEL || eventType === EventType.END_STREAM) return;
 
         const config = configManager.getGuildConfig(newState.guild.id);
@@ -83,11 +85,11 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             member.presence.status !== "dnd"
         ))];
 
-        logger.info(`Notifying ${members.length} member${members.length == 1 ? "" : "s"} about user "${newState.member?.displayName}" in ${newState.guild.name}`);
+        logger.info(`Notifying ${members.length} member${members.length == 1 ? "" : "s"} about user "${member.displayName}" in ${newState.guild.name}`);
 
         for (let i = 0; i < members.length; i++) {
             let member = members[i];
-            if (member.id == newState.member?.id) continue;
+            if (member.id == member.id) continue;
             const channel = await member.user.createDM();
 
             logger.debug(`Sending notification to ${member.displayName} (Status: ${member.presence.status} | Excluded: ${
@@ -95,9 +97,9 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             })`);
 
             if (eventType === EventType.JOIN_CHANNEL || eventType === EventType.SWITCH_CHANNEL) {
-                await channel.send(`**${newState.member?.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**`);
+                await channel.send(`**${member.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**`);
             } else if (eventType === EventType.START_STREAM) {
-                await channel.send(`**${newState.member?.displayName}** started streaming in **${newState.guild.name}**`);
+                await channel.send(`**${member.displayName}** started streaming in **${newState.guild.name}**`);
             }
         }
     });
