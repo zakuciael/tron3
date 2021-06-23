@@ -73,33 +73,33 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
         const members = [...new Set([
             ...(await notification.getMembers(newState.guild!)),
             ...(await notification.getMembersFromRoles(newState.guild!))
-        ].filter(member =>
-            !member.user.bot
-        ).filter(async (member) =>
+        ].filter(notificationMember =>
+            !notificationMember.user.bot
+        ).filter(async (notificationMember) =>
             (await notification.getExcludedMembers(newState.guild!))
-                .find(m => member.id === m.id) === undefined
-        ).filter(member =>
-            !newState.channel?.members.has(member.id)
-        ).filter(member =>
+                .find(m => notificationMember.id === m.id) == undefined
+        ).filter(notificationMember =>
+            !newState.channel?.members.has(notificationMember.id)
+        ).filter(notificationMember =>
             config.isIgnoringDNDs() ||
-            member.presence.status !== "dnd"
+            notificationMember.presence.status !== "dnd"
         ))];
 
         logger.info(`Notifying ${members.length} member${members.length == 1 ? "" : "s"} about user "${member.displayName}" in ${newState.guild.name}`);
 
         for (let i = 0; i < members.length; i++) {
-            let member = members[i];
-            if (member.id == member.id) continue;
-            const channel = await member.user.createDM();
+            let notificationMember = members[i];
+            if (member.id === notificationMember.id) continue;
+            const channel = await notificationMember.user.createDM();
 
-            logger.debug(`Sending notification to ${member.displayName} (Status: ${member.presence.status} | Excluded: ${
-                (await notification.getExcludedMembers(newState.guild)).findIndex(m => m.id === member.id) > -1
+            logger.debug(`Sending notification to ${notificationMember.displayName} (Status: ${notificationMember.presence.status} | Excluded: ${
+                (await notification.getExcludedMembers(newState.guild)).findIndex(m => m.id === notificationMember.id) > -1
             })`);
 
             if (eventType === EventType.JOIN_CHANNEL || eventType === EventType.SWITCH_CHANNEL) {
-                await channel.send(`**${member.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**`);
+                await channel.send(`**${notificationMember.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**`);
             } else if (eventType === EventType.START_STREAM) {
-                await channel.send(`**${member.displayName}** started streaming in **${newState.guild.name}**`);
+                await channel.send(`**${notificationMember.displayName}** started streaming in **${newState.guild.name}**`);
             }
         }
     });
