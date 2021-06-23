@@ -34,8 +34,9 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
     logger.debug("Setting up voice state update handler...");
     bot.on("voiceStateUpdate", async (oldState, newState) => {
         logger.debug("New voice state update detected printing states...");
-        console.log("Old State: ", oldState);
-        console.log("New State: ", newState);
+        logger.debug("Old State: ", JSON.stringify(oldState));
+        logger.debug("New State: ", JSON.stringify(newState));
+        logger.debug("Member: ", JSON.stringify(newState.member));
 
         const member = await (newState.member?.partial ? newState.member.fetch() : Promise.resolve(newState.member!));
 
@@ -77,7 +78,7 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
             !notificationMember.user.bot
         ).filter(async (notificationMember) =>
             (await notification.getExcludedMembers(newState.guild!))
-                .find(m => notificationMember.id === m.id) == undefined
+                .findIndex(m => notificationMember.id === m.id) === -1
         ).filter(notificationMember =>
             !newState.channel?.members.has(notificationMember.id)
         ).filter(notificationMember =>
@@ -96,11 +97,14 @@ const isDebug = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "
                 (await notification.getExcludedMembers(newState.guild)).findIndex(m => m.id === notificationMember.id) > -1
             })`);
 
-            if (eventType === EventType.JOIN_CHANNEL || eventType === EventType.SWITCH_CHANNEL) {
-                await channel.send(`**${notificationMember.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**`);
-            } else if (eventType === EventType.START_STREAM) {
-                await channel.send(`**${notificationMember.displayName}** started streaming in **${newState.guild.name}**`);
-            }
+            const message = eventType === EventType.JOIN_CHANNEL || eventType === EventType.SWITCH_CHANNEL ?
+                `**${member.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**` :
+                eventType === EventType.START_STREAM ?
+                    `**${member.displayName}** started streaming in **${newState.guild.name}**` :
+                    undefined;
+
+            if (message != undefined)
+                await channel.send(message).catch(err => logger.error(err, `sending a message to user ${notificationMember.displayName}`));
         }
     });
 
