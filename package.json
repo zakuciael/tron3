@@ -22,7 +22,11 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "discord.js": "13.0.0-dev.1816a93b1b1b2bae47e8651e76fa53699de8421d"
+    "@zakku/winston-logs": "^1.0.6",
+    "computed-types": "^1.9.0",
+    "discord.js": "13.0.0-dev.1816a93b1b1b2bae47e8651e76fa53699de8421d",
+    "dotenv": "^10.0.0",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "@types/node": "^15.12.4",
