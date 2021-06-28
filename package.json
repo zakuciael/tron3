@@ -10,10 +10,12 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@elastic/ecs-winston-format": "^1.1.0",
+    "@zakku/winston-logs": "^1.0.6",
     "chokidar": "^3.4.2",
-    "colored-logs": "^2.0.1",
     "discord.js": "^12.3.1",
-    "glob": "^7.1.6"
+    "glob": "^7.1.6",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",

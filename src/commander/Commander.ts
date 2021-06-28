@@ -4,9 +4,10 @@ import {GuildConfig} from "../config/GuildConfig";
 import {EmbedBuilder} from "../utils/EmbedBuilder";
 import {Command, SubCommand} from "./Command";
 import {FSWatcher, watch} from "chokidar";
-import {Logger} from "colored-logs";
+import {Logger} from "winston";
 import {glob} from "glob";
 import path from "path";
+import {isDebug} from "../utils/Debug";
 
 interface CommandSettings {
     cmd: Command | SubCommand;
@@ -27,7 +28,7 @@ export class Commander {
 
     public async load(): Promise<number> {
         return new Promise<number>((resolve, reject) => {
-            glob(`${this.directory}/**/*`, { nodir: true }, async (err, matches) => {
+            glob(`${this.directory}/**/*`, {nodir: true}, async (err, matches) => {
                 if (err) return reject(err);
 
                 for (let file of matches)
@@ -35,21 +36,35 @@ export class Commander {
                         .then(name => this.logger.debug(`Registered new command: ${name}`))
                         .catch(e => this.logger.error(e, "registering new command"));
 
-                this.watcher = watch(this.directory, { persistent: true, awaitWriteFinish: true });
+                if (isDebug) {
+                    this.watcher = watch(this.directory, {persistent: true, awaitWriteFinish: true});
 
-                this.watcher.on("change", async file =>
-                    await this.loadCommand(path.resolve(file))
-                        .then(name => this.logger.debug(`Reloaded command: ${name}`))
-                        .catch(e => this.logger.error(e, "reloading command"))
-                );
+                    this.watcher.on("change", async file =>
+                        await this.loadCommand(path.resolve(file))
+                            .then(name => this.logger.debug(`Successfully reloaded command: ${name}`, {
+                                commandName: name,
+                                commandPath: path.resolve(file)
+                            }))
+                            .catch(e => this.logger.error("An error occurred while reloading a command", {
+                                error: e,
+                                commandPath: path.resolve(file)
+                            }))
+                    );
 
-                this.watcher.on("unlink", async file => {
-                    const name = this.unloadCommand(path.resolve(file));
-                    if (name === "DummyCommand")
-                        this.logger.error(new Error("Could not find command"), "removing command");
-                    else
-                        this.logger.debug(`Removed command: ${name}`);
-                });
+                    this.watcher.on("unlink", async file => {
+                        const name = this.unloadCommand(path.resolve(file));
+                        if (name === "DummyCommand")
+                            this.logger.error("An error occurred while unloading a command", {
+                                commandName: name,
+                                commandPath: path.resolve(file)
+                            });
+                        else
+                            this.logger.debug(`Successfully unloaded command: ${name}`, {
+                                commandName: name,
+                                commandPath: path.resolve(file)
+                            });
+                    });
+                }
 
                 return resolve(matches.length);
             })
@@ -62,8 +77,6 @@ export class Commander {
 
         const config = manager.getGuildConfig(msg.guild?.id!);
         if (!msg.content.startsWith(config.getPrefix())) return;
-
-        this.logger.info(`Received command message ${msg.cleanContent} from user ${Commander.resolveUsername(msg)}`);
 
         const args = msg.content
             .substr(config.getPrefix().length)
@@ -79,7 +92,10 @@ export class Commander {
             .map(settings => settings.cmd);
 
         if (cmds.length === 0) {
-            this.logger.warn(`${Commander.resolveUsername(msg)} tried to use command: "${msg.cleanContent}", but it doesn't exists`);
+            this.logger.warn(`${Commander.resolveUsername(msg)} tried to use command: "${msg.cleanContent}", but it doesn't exists`, {
+                message: msg.cleanContent,
+                member: msg.member
+            });
             return;
         }
 
@@ -94,7 +110,10 @@ export class Commander {
             cmd = cmds.find(cmd => cmd.command === cmdName && (cmd as SubCommand).subcommand === undefined);
 
         if (!cmd) {
-            this.logger.warn(`${Commander.resolveUsername(msg)} tried to use command: "${msg.cleanContent}", but it doesn't exists`);
+            this.logger.warn(`${Commander.resolveUsername(msg)} tried to use command: "${msg.cleanContent}", but it doesn't exists`, {
+                message: msg.cleanContent,
+                member: msg.member
+            });
             return;
         }
 
@@ -102,18 +121,29 @@ export class Commander {
             args.splice(0, 1);
 
         if (!(await cmd.validate(msg, args, config))) {
-            this.logger.warn(`${Commander.resolveUsername(msg)} sent invalid command: ${msg.cleanContent}`);
-            msg.channel.send({embed: EmbedBuilder.getInvalidCommandEmbed([cmd.usage])}).then(() => {});
+            this.logger.warn(`${Commander.resolveUsername(msg)} sent invalid command: ${msg.cleanContent}`, {
+                message: msg.cleanContent,
+                member: msg.member
+            });
+            msg.channel.send({embed: EmbedBuilder.getInvalidCommandEmbed([cmd.usage])}).then(() => {
+            });
             return;
         }
 
         if (!(await cmd.hasAccess(msg, args, config))) {
-            this.logger.warn(`${Commander.resolveUsername(msg)} tried to talk to bot, but doesn't have permissions to do so.`)
+            this.logger.warn(`${Commander.resolveUsername(msg)} tried to talk to bot, but doesn't have permissions to do so.`, {
+                message: msg.cleanContent,
+                member: msg.member
+            })
             return;
         }
 
         cmd.execute(msg, args, config, this)
-            .catch(e => this.logger.error(e, "executing command"));
+            .catch(e => this.logger.error("An error occurred while executing command", {
+                message: msg.cleanContent,
+                member: msg.member,
+                error: e
+            }));
     }
 
     public getCommands(): (Command | SubCommand)[] {
@@ -153,7 +183,7 @@ export class Commander {
         const index = this.commands.findIndex(cmd => cmd.file_path === file_path);
 
         if (index > -1) this.commands.splice(index, 1);
-        this.commands.push({ cmd, file_path });
+        this.commands.push({cmd, file_path});
 
         return cmd.constructor.name;
     }
