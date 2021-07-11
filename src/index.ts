@@ -41,12 +41,18 @@ const commandsPath: string = process.env.COMMANDS_PATH || "./src/commands";
 
     logger.info("Setting up voice state update handler...");
     bot.on("voiceStateUpdate", async (oldState, newState) => {
+        logger.info("Received new voice state update event!");
         const member = await (newState.member?.partial ? newState.member.fetch() : Promise.resolve(newState.member!));
 
         if (member.user.bot) return;
         for (let change of ["deaf", "mute", "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute"]) {
             // @ts-ignore
             if (oldState[change] != undefined && oldState[change] !== newState[change]) {
+                logger.info(`Skipping event because change of "${change}" was detected`, {
+                    change,
+                    prevValue: (oldState as unknown as Record<string, unknown>)[change],
+                    newValue: (newState as unknown as Record<string, unknown>)[change]
+                })
                 return;
             }
         }
