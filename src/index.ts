@@ -2,10 +2,10 @@ import {ConfigManager} from "./config/ConfigManager";
 import {Commander} from "./commander/Commander";
 import {Client} from "discord.js";
 import {GuildConfig} from "./config/GuildConfig";
-import {EventType} from "./types/EventType";
 import {createLogger, transports} from "winston";
 import ecsFormat from "@elastic/ecs-winston-format";
 import {logsFormat} from "@zakku/winston-logs";
+import {EventType} from "./types/EventType";
 import {isDebug} from "./utils/Debug";
 
 const configPath: string = process.env.CONFIG_PATH || "./config.json";
@@ -41,85 +41,90 @@ const commandsPath: string = process.env.COMMANDS_PATH || "./src/commands";
 
     logger.info("Setting up voice state update handler...");
     bot.on("voiceStateUpdate", async (oldState, newState) => {
-        logger.info("Received new voice state update event!");
-        const member = await (newState.member?.partial ? newState.member.fetch() : Promise.resolve(newState.member!));
+        logger.info("Received new voice state update event!", {oldState, newState});
 
-        if (member.user.bot) return;
-        for (let change of ["deaf", "mute", "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute"]) {
-            // @ts-ignore
-            if (oldState[change] != undefined && oldState[change] !== newState[change]) {
-                logger.info(`Skipping event because change of "${change}" was detected`, {
-                    change,
-                    prevValue: (oldState as unknown as Record<string, unknown>)[change],
-                    newValue: (newState as unknown as Record<string, unknown>)[change]
-                })
-                return;
-            }
+        const member = await (newState.member?.partial
+            ? newState.member.fetch().catch(e => {
+                logger.error("Failed to fetch member", {error: e});
+                return undefined;
+            }) : Promise.resolve(newState.member));
+
+        if (member == undefined) {
+            logger.error("Failed to obtain member data from the new state");
+            return;
         }
 
-        let eventType: EventType;
-        if (!oldState.streaming && newState.streaming) {
-            eventType = EventType.START_STREAM;
-        } else if ((oldState.channelID !== undefined && oldState.channelID !== null) && oldState.streaming && !newState.streaming) {
-            eventType = EventType.END_STREAM;
-        } else if ((oldState.channelID === undefined || oldState.channelID === null) && (newState.channelID !== undefined && newState.channelID !== null)) {
-            eventType = EventType.JOIN_CHANNEL;
-        } else if ((newState.channelID === undefined || newState.channelID === null) && (oldState.channelID !== undefined && oldState.channelID !== null)) {
-            eventType = EventType.LEAVE_CHANNEL;
-        } else {
-            eventType = EventType.SWITCH_CHANNEL;
+        if (member.user.bot) {
+            logger.info("Ignoring event due to member being a bot user.");
+            return;
         }
 
-        let eventName = String(Object.keys(EventType)[(Object.keys(EventType).length / 2) + eventType]);
-        logger.info(`Detected event change for user "${member.displayName}" new value is ${eventName}`, {
-            event: {type: eventName},
-            member: member,
-            oldState,
-            newState
-        });
+        const eventType = EventType.fromStates(oldState, newState);
+        const memberUsername = `${member.user.username}#${member.user.discriminator}`;
 
-        if (eventType === EventType.LEAVE_CHANNEL || eventType === EventType.END_STREAM) return;
+        if (eventType == undefined) {
+            logger.error("Ignoring event due to invalid event type detected.");
+            return;
+        }
+
+        logger.info(`Detected "${EventType[eventType]}" event type for user ${memberUsername}`);
+
+        if (eventType !== EventType.JOIN_CHANNEL &&
+            eventType !== EventType.SWITCH_CHANNEL &&
+            eventType !== EventType.START_STREAM) {
+            logger.info("Ignoring event because its not supported by the notification system");
+            return;
+        }
 
         const config = configManager.getGuildConfig(newState.guild.id);
         const notification = config.getNotificationManager().get(newState.channelID!);
+
         if (!notification) {
-            logger.info(`No notification settings found for channel "${newState.channel?.name}" (${newState.channelID})`, {channel: newState.channel});
+            logger.info(`No notification settings found for "${newState.channel?.name}" channel`, {channel: newState.channel});
             return;
         }
 
         const members = [...new Set([
             ...(await notification.getMembers(newState.guild!)),
             ...(await notification.getMembersFromRoles(newState.guild!))
-        ].filter(notificationMember =>
-            !notificationMember.user.bot
-        ).filter(async (notificationMember) =>
+        ].filter(target =>
+            !target.user.bot
+        ).filter(async (target) =>
             (await notification.getExcludedMembers(newState.guild!))
-                .findIndex(m => notificationMember.id === m.id) === -1
-        ).filter(notificationMember =>
-            !newState.channel?.members.has(notificationMember.id)
-        ).filter(notificationMember =>
+                .findIndex(m => target.id === m.id) === -1
+        ).filter(target =>
+            !newState.channel?.members.has(target.id)
+        ).filter(target =>
             config.isIgnoringDNDs() ||
-            notificationMember.presence.status !== "dnd"
+            target.presence.status !== "dnd"
         ))];
 
-        for (let i = 0; i < members.length; i++) {
-            let notificationMember = members[i];
-            if (member.id === notificationMember.id) continue;
-            const channel = await notificationMember.user.createDM();
+        for (let target of members) {
+            if (member.id === target.id) continue;
 
-            logger.info(`Sending notification to ${notificationMember.displayName}`, {member: notificationMember});
+            const targetUsername = `${target.user.username}#${target.user.discriminator}`;
+            const channel = await target.user.createDM().catch(e => {
+                logger.error(`Failed to setup DM with "${targetUsername}"`, {error: e});
+                return undefined;
+            });
+
+            if (channel == undefined) return;
+            logger.info(`Sending notification to ${targetUsername}`, {target});
 
             const message = eventType === EventType.JOIN_CHANNEL || eventType === EventType.SWITCH_CHANNEL ?
-                `**${member.displayName}** joined **${newState.channel?.name}** in **${newState.guild.name}**` :
+                `**${member.user.username}** joined **${newState.channel?.name}** in **${newState.guild.name}**` :
                 eventType === EventType.START_STREAM ?
-                    `**${member.displayName}** started streaming in **${newState.guild.name}**` :
+                    `**${member.user.username}** started streaming in **${newState.guild.name}**` :
                     undefined;
 
-            if (message != undefined)
-                await channel.send(message).catch(err => logger.error(`An error occurred while sending message to user ${notificationMember.displayName}`, {
-                    member: notificationMember,
-                    error: err
-                }));
+            if (message == undefined) return;
+
+            await channel.send(message).catch(e => {
+                logger.error(`An error occurred while sending message to ${targetUsername}`, {
+                    target: target,
+                    error: e
+                });
+            })
         }
     });
 
