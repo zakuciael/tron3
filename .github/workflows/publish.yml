@@ -43,7 +43,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GCR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Node.js dependencies
         run: yarn install
       - name: Build package
