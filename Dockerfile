@@ -26,4 +26,4 @@ WORKDIR /tron3/
 ENV CONFIG_PATH /tron3/config.json
 ENV COMMANDS_PATH /tron3/commands/
 
-CMD ["dist/index.js"]
+CMD ["index.js"]
