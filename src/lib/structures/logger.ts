@@ -5,7 +5,7 @@
  */
 
 import { createLogger, Logger as WinstonLogger, transports } from "winston";
-import { elegantFormat } from "@zakku/winston-logs";
+import { elegantFormat, LABEL } from "@zakku/winston-logs";
 import { Injectable } from "~/lib/decorators/injectable.js";
 
 @Injectable
@@ -14,7 +14,8 @@ export class Logger {
 
     constructor();
     constructor(level: string);
-    constructor(level?: string) {
+    constructor(level: string, label: string | string[]);
+    constructor(level?: string, label?: string | string[]) {
         this.logger = createLogger({
             level: level?.toLowerCase() ?? "info",
             levels: { fatal: 0, error: 1, warn: 2, info: 3, debug: 4, trace: 5 },
@@ -28,7 +29,8 @@ export class Logger {
                 }
             }),
             // TODO: Implement output to log management services
-            transports: [new transports.Console()]
+            transports: [new transports.Console()],
+            ...(label === undefined ? {} : { defaultMeta: { [LABEL]: label } })
         });
     }
 
@@ -114,5 +116,9 @@ export class Logger {
 
         this.logger.log("trace", message, ...meta);
         return this;
+    }
+
+    public createLabeled(label: string | string[]): Logger {
+        return new Logger(this.logger.level, label);
     }
 }
