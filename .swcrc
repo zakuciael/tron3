@@ -12,7 +12,8 @@
     "paths": {
       "~/*": ["src/*"]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
+    "externalHelpers": true
   },
   "module": {
     "type": "es6"
