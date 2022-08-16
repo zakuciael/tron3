@@ -8,6 +8,7 @@ import { promises as fsp } from "node:fs";
 import { extname, join } from "node:path";
 import type { interfaces } from "inversify";
 import is from "@sindresorhus/is";
+import type { Client } from "discord.js";
 import { Logger } from "~/lib/structures/logger.js";
 import { classExtends, dynamicImport, toPascal, toSingular } from "~/lib/utils.js";
 
@@ -22,12 +23,14 @@ export interface FileMetadata<T> {
 export interface StoreOptions {
     readonly name: string;
     readonly container: interfaces.Container;
+    readonly client: Client;
     readonly paths?: readonly string[];
 }
 
 export type NamedStoreOptions = Omit<StoreOptions, "name">;
 
 export class Store<T> {
+    protected readonly client: Client;
     protected readonly logger: Logger;
     protected readonly paths: Set<string>;
     protected readonly metas: Set<FileMetadata<T>>;
@@ -38,6 +41,7 @@ export class Store<T> {
     constructor(private readonly ctor: interfaces.Newable<T>, options: StoreOptions) {
         this._name = options.name;
         this._container = options.container.createChild();
+        this.client = options.client;
         this.paths = new Set(options.paths ?? []);
         this.metas = new Set();
 
