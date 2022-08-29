@@ -5,7 +5,9 @@
  */
 
 import { basename, extname, relative, sep } from "node:path";
-import type { ChatInputApplicationCommandData } from "discord.js";
+import process from "node:process";
+import type { ApplicationCommand, ChatInputApplicationCommandData, Collection } from "discord.js";
+import { ApplicationCommandManager } from "discord.js";
 // eslint-disable-next-line n/file-extension-in-import
 import { ApplicationCommandOptionType } from "discord-api-types/v10";
 import type { FileMetadata, NamedStoreOptions } from "~/lib/structures/store.js";
@@ -17,6 +19,52 @@ export class CommandStore extends Store<Command> {
 
     constructor(options: NamedStoreOptions) {
         super(Command as any, { ...options, name: "commands" });
+    }
+
+    public async register(): Promise<void> {
+        /**
+         * TODO: Find differences, process them, update the command
+         * or do nothing if there are no changes to the command
+         * Assignee: @Wittano
+         */
+
+        if (!this.client.application) throw new Error("Ho Lee Fuk");
+
+        this.logger.info("Initializing commands...");
+        const now = Date.now();
+
+        const appCommands = this.client.application.commands;
+        const globalCommands = await appCommands.fetch({ withLocalizations: true });
+
+        if (process.env.NODE_ENV === "production") {
+            await Promise.allSettled(
+                [...this._commands.values()].map(async (cmd) =>
+                    this.registerCommand(cmd, appCommands, globalCommands)
+                )
+            );
+        }
+
+        if (process.env.NODE_ENV === "development") {
+            if (!process.env.DEV_GUILD_ID)
+                throw new Error("Unable to register guild commands, guild id is missing.");
+
+            const guildId = process.env.DEV_GUILD_ID;
+            let guildCommands: Collection<string, ApplicationCommand>;
+
+            try {
+                guildCommands = await appCommands.fetch({ guildId, withLocalizations: true });
+            } catch {
+                throw new Error(`Failed to fetch guild commands for guild '${guildId}'`);
+            }
+
+            await Promise.allSettled(
+                [...this._commands.values()].map(async (cmd) =>
+                    this.registerCommand(cmd, appCommands, guildCommands, guildId)
+                )
+            );
+        }
+
+        this.logger.info(`Took ${(Date.now() - now).toLocaleString()}ms to initialize commands`);
     }
 
     public override async loadAll(): Promise<void> {
@@ -125,5 +173,28 @@ export class CommandStore extends Store<Command> {
 
     protected override async insert(metadata: FileMetadata<Command>): Promise<void> {
         return super.insert(metadata);
+    }
+
+    private async registerCommand(
+        command: ChatInputApplicationCommandData,
+        commandsManager: ApplicationCommandManager,
+        appCommands: Collection<string, ApplicationCommand>,
+        guildId?: string
+    ) {
+        const appCommand = appCommands.find((entry) => entry.name === command.name);
+
+        // TODO: Add better logs when whe know differences between commands
+        if (appCommand)
+            return (async () => {
+                this.logger.debug("Updating command '%s' with data '%o'", command.name, command);
+                await (guildId
+                    ? commandsManager.edit(appCommand, command, guildId)
+                    : commandsManager.edit(appCommand, command));
+            })();
+
+        return (async () => {
+            this.logger.debug("Creating new command '%s' with data %o", command.name, command);
+            await (guildId ? commandsManager.create(command, guildId) : commandsManager.create(command));
+        })();
     }
 }
