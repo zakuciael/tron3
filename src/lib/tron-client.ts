@@ -13,6 +13,7 @@ import { LABEL } from "@zakku/winston-logs";
 import { Injectable } from "~/lib/decorators/injectable.js";
 import { Logger } from "~/lib/structures/logger.js";
 import { StoreRegistry } from "~/lib/structures/store-registry.js";
+import { CommandStore } from "~/lib/structures/stores/command-store.js";
 
 interface TronClientOptions {
     log_level?: string | undefined;
@@ -58,6 +59,7 @@ export class TronClient extends Client {
 
         // Register stores
         this.stores = new StoreRegistry();
+        this.stores.register(new CommandStore({ container: this.container, client: this }));
         this.stores.registerPath(fileURLToPath(new URL("../", import.meta.url)));
     }
 

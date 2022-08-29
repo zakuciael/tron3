@@ -7,12 +7,23 @@
 import { join } from "node:path";
 import { Collection } from "discord.js";
 import { Store } from "~/lib/structures/store.js";
+import type { CommandStore } from "~/lib/structures/stores/command-store.js";
 
 type Key = keyof StoreRegistryEntries;
 type Value = StoreRegistryEntries[Key];
 
 interface StoreRegistryEntries {
-    commands: Store<unknown>;
+    commands: CommandStore;
+}
+
+export interface StoreRegistry {
+    get<K extends Key>(key: K): StoreRegistryEntries[K];
+
+    get(key: string): undefined;
+
+    has(key: Key): true;
+
+    has(key: string): false;
 }
 
 export class StoreRegistry extends Collection<Key, Value> {
