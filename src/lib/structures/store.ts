@@ -18,6 +18,7 @@ export interface FileMetadata<T> {
     class: T;
     constructor: interfaces.Newable<T>;
     path: string;
+    root: string;
 }
 
 export interface StoreOptions {
@@ -110,7 +111,7 @@ export class Store<T> {
 
             try {
                 const _class = this._container.resolve(constructor);
-                const metadata = { class: _class, constructor, path: child };
+                const metadata = { class: _class, constructor, path: child, root };
 
                 await this.insert(metadata);
                 this.logger.trace("Loaded new class '%s'", constructor.name);
