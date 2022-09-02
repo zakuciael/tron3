@@ -10,6 +10,7 @@ import type { ApplicationCommand, ChatInputApplicationCommandData, Collection } 
 import { ApplicationCommandManager } from "discord.js";
 // eslint-disable-next-line n/file-extension-in-import
 import { ApplicationCommandOptionType } from "discord-api-types/v10";
+import objectHash from "object-hash";
 import type { FileMetadata, NamedStoreOptions } from "~/lib/structures/store.js";
 import { Store } from "~/lib/structures/store.js";
 import { Command } from "~/lib/structures/bases/command.js";
@@ -22,12 +23,6 @@ export class CommandStore extends Store<Command> {
     }
 
     public async register(): Promise<void> {
-        /**
-         * TODO: Find differences, process them, update the command
-         * or do nothing if there are no changes to the command
-         * Assignee: @Wittano
-         */
-
         if (!this.client.application) throw new Error("Ho Lee Fuk");
 
         this.logger.info("Initializing commands...");
@@ -183,18 +178,69 @@ export class CommandStore extends Store<Command> {
     ) {
         const appCommand = appCommands.find((entry) => entry.name === command.name);
 
-        // TODO: Add better logs when whe know differences between commands
-        if (appCommand)
+        if (!appCommand) {
             return (async () => {
-                this.logger.debug("Updating command '%s' with data '%o'", command.name, command);
+                this.logger.debug("Creating new commands '%s' with data %o", command.name, command);
+                await (guildId ? commandsManager.create(command, guildId) : commandsManager.create(command));
+            })();
+        }
+
+        this.removeEmptyFields(command);
+
+        // TODO: Add better logs when whe know differences between commands
+        if (appCommand && !this.compareCommand(command, this.normalizedApplicationCommand(appCommand))) {
+            return (async () => {
+                this.logger.debug("Updating commands '%s' with data '%o'", command.name, command);
                 await (guildId
                     ? commandsManager.edit(appCommand, command, guildId)
                     : commandsManager.edit(appCommand, command));
             })();
+        }
+    }
 
-        return (async () => {
-            this.logger.debug("Creating new command '%s' with data %o", command.name, command);
-            await (guildId ? commandsManager.create(command, guildId) : commandsManager.create(command));
-        })();
+    private compareCommand(
+        command: ChatInputApplicationCommandData,
+        globalAppCommand: ChatInputApplicationCommandData
+    ): boolean {
+        const appCommandHash = objectHash.sha1(command);
+        const globalAppCommandHash = objectHash.sha1(globalAppCommand);
+
+        return appCommandHash === globalAppCommandHash;
+    }
+
+    private normalizedApplicationCommand(command: ApplicationCommand): ChatInputApplicationCommandData {
+        const normalizedCommand: ChatInputApplicationCommandData = {
+            name: command.name,
+            description: command.description,
+            options: command.options,
+            dmPermission: command.dmPermission,
+            defaultMemberPermissions: command.defaultMemberPermissions
+        };
+
+        this.removeEmptyFields(normalizedCommand);
+
+        return normalizedCommand;
+    }
+
+    private removeEmptyFields(object: any) {
+        for (const key of Object.keys(object)) {
+            const field = object[key];
+
+            if (Array.isArray(field)) {
+                if (field.length > 0) {
+                    for (const element of field) {
+                        this.removeEmptyFields(element);
+                    }
+                } else {
+                    delete object[key];
+                    continue;
+                }
+            }
+
+            if (!field) {
+                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                delete object[key];
+            }
+        }
     }
 }
