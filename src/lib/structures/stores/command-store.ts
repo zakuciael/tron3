@@ -80,9 +80,9 @@ export class CommandStore extends Store<Command> {
                     this._commands.set(fileName, {
                         name: fileName,
                         description,
-                        options: [...options],
                         defaultMemberPermissions: defaultMemberPermissions ?? null,
-                        dmPermission: allowDM ?? true
+                        ...(options.length > 0 ? { options: [...options] } : {}),
+                        ...(typeof allowDM === "undefined" || allowDM ? {} : { dmPermission: false })
                     });
                     break;
                 }
@@ -105,7 +105,7 @@ export class CommandStore extends Store<Command> {
                         name: fileName,
                         type: ApplicationCommandOptionType.Subcommand,
                         description,
-                        options: [...options]
+                        ...(options.length > 0 ? { options: [...options] } : {})
                     });
 
                     this._commands.set(commandName, command);
@@ -136,7 +136,7 @@ export class CommandStore extends Store<Command> {
                             name: fileName,
                             type: ApplicationCommandOptionType.Subcommand,
                             description,
-                            options: [...options]
+                            ...(options.length > 0 ? { options: [...options] } : {})
                         });
                     } else {
                         command.options?.push({
@@ -148,7 +148,7 @@ export class CommandStore extends Store<Command> {
                                     name: fileName,
                                     type: ApplicationCommandOptionType.Subcommand,
                                     description,
-                                    options: [...options]
+                                    ...(options.length > 0 ? { options: [...options] } : {})
                                 }
                             ]
                         });
