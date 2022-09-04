@@ -11,7 +11,6 @@ import { IntentsBitField, Partials } from "discord.js";
 import { TronClient } from "~/lib/tron-client.js";
 
 const bot = new TronClient({
-    log_level: process.env.LOG_LEVEL,
     intents: [
         IntentsBitField.Flags.Guilds,
         IntentsBitField.Flags.GuildMembers,

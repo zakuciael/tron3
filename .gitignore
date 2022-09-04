@@ -17,5 +17,5 @@ yarn-error.log*
 .pnpm-error.log*
 *.log
 
-!.env.example
 .env*
+!.env.example
