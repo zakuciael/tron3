@@ -4,6 +4,7 @@
  * MIT Licensed
  */
 
+import process from "node:process";
 import { createLogger, Logger as WinstonLogger, transports } from "winston";
 import { elegantFormat, LABEL } from "@zakku/winston-logs";
 import { Injectable } from "~/lib/decorators/injectable.js";
@@ -12,14 +13,10 @@ import { Injectable } from "~/lib/decorators/injectable.js";
 export class Logger {
     logger: WinstonLogger;
 
-    constructor();
-    constructor(level: string);
-    constructor(level: string, label: string | string[]);
-    constructor(level?: string, label?: string | string[]) {
+    constructor(label?: string | string[]) {
         this.logger = createLogger({
-            level: level?.toLowerCase() ?? "info",
+            level: process.env.NODE_ENV === "production" ? "info" : "trace",
             levels: { fatal: 0, error: 1, warn: 2, info: 3, debug: 4, trace: 5 },
-            // TODO: Implement LOG_TYPE env usage, by adding json output
             format: elegantFormat({
                 colors: {
                     trace: "magenta"
@@ -28,7 +25,6 @@ export class Logger {
                     1: "magenta"
                 }
             }),
-            // TODO: Implement output to log management services
             transports: [new transports.Console()],
             ...(label === undefined ? {} : { defaultMeta: { [LABEL]: label } })
         });
@@ -119,6 +115,6 @@ export class Logger {
     }
 
     public createLabeled(label: string | string[]): Logger {
-        return new Logger(this.logger.level, label);
+        return new Logger(label);
     }
 }

@@ -17,18 +17,12 @@ import { Logger } from "~/lib/structures/logger.js";
 import { StoreRegistry } from "~/lib/structures/store-registry.js";
 import { CommandStore } from "~/lib/structures/stores/command-store.js";
 
-interface TronClientOptions {
-    log_level?: string | undefined;
-}
-
 declare module "discord.js" {
     interface Client {
         readonly logger: Logger;
         readonly container: interfaces.Container;
         readonly stores: StoreRegistry;
     }
-
-    interface ClientOptions extends TronClientOptions {}
 }
 
 @Injectable
@@ -40,7 +34,7 @@ export class TronClient extends Client {
     constructor(options: ClientOptions) {
         super(options);
 
-        this.logger = new Logger(options.log_level ?? "info");
+        this.logger = new Logger();
         this.container = new Container({ defaultScope: "Singleton" });
 
         // Bind TronClient to the container
