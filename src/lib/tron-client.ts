@@ -44,9 +44,9 @@ export class TronClient extends Client {
         this.container.bind(Logger).toDynamicValue((context) => {
             const { target } = context.currentRequest;
 
-            if (target.isNamed()) return this.logger.createLabeled(target.getNamedTag()!.value);
+            if (target.isNamed()) return new Logger(target.getNamedTag()!.value);
             if (target.isTagged() && target.hasTag(LABEL))
-                return this.logger.createLabeled(
+                return new Logger(
                     target.getCustomTags()!.find((tag) => tag.key === LABEL)!.value as string | string[]
                 );
 

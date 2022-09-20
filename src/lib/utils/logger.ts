@@ -113,8 +113,4 @@ export class Logger {
         this.logger.log("trace", message, ...meta);
         return this;
     }
-
-    public createLabeled(label: string | string[]): Logger {
-        return new Logger(label);
-    }
 }

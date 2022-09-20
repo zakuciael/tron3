@@ -59,9 +59,10 @@ export class Store<T> {
                 const { serviceIdentifier } = context.plan.rootRequest;
 
                 if (!logger) throw new Error(`Could not find a parent logger`);
-                if (!is.class_(serviceIdentifier)) return logger.createLabeled("UNKNOWN");
+                if (!is.class_(serviceIdentifier))
+                    throw new Error(`Requested logger via non-class service identifier`);
 
-                return logger.createLabeled([displayName, serviceIdentifier.name]);
+                return new Logger([displayName, serviceIdentifier.name]);
             })
             .inSingletonScope();
     }
