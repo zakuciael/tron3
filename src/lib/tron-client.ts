@@ -13,7 +13,7 @@ import { LABEL } from "@zakku/winston-logs";
 // eslint-disable-next-line n/file-extension-in-import
 import { InteractionType } from "discord-api-types/v10";
 import { Injectable } from "~/lib/decorators/injectable.js";
-import { Logger } from "~/lib/structures/logger.js";
+import { Logger } from "~/lib/utils/logger.js";
 import { StoreRegistry } from "~/lib/structures/store-registry.js";
 import { CommandStore } from "~/lib/structures/stores/command-store.js";
 

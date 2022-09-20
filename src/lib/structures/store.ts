@@ -9,8 +9,10 @@ import { extname, join } from "node:path";
 import type { interfaces } from "inversify";
 import is from "@sindresorhus/is";
 import type { Client } from "discord.js";
-import { Logger } from "~/lib/structures/logger.js";
-import { classExtends, dynamicImport, toPascal, toSingular } from "~/lib/utils.js";
+import { Logger } from "~/lib/utils/logger.js";
+import { classExtends } from "~/lib/utils/class.js";
+import { toPascal, toSingular } from "~/lib/utils/string.js";
+import { dynamicImport } from "~/lib/utils/import.js";
 
 type ErrorWithCode = Error & { code: string };
 
