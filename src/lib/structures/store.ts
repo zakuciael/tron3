@@ -102,7 +102,7 @@ export class Store<T> {
         for await (const child of this.walk(root)) {
             if (extname(child) !== ".js") {
                 this.logger.trace(
-                    "Skipped file '%s' due to unsupported extension '%s'",
+                    "Skipped file '%s' due to unsupported file extension '%s'",
                     child,
                     extname(child)
                 );
