@@ -23,7 +23,8 @@ export class CommandStore extends Store<Command> {
     }
 
     public async register(): Promise<void> {
-        if (!this.client.application) throw new Error("Ho Lee Fuk");
+        // Early escape when application is not properly loaded.
+        if (!this.client.application) return;
 
         this.logger.info("Initializing commands...");
         const now = Date.now();
@@ -40,17 +41,12 @@ export class CommandStore extends Store<Command> {
         }
 
         if (process.env.NODE_ENV === "development") {
-            if (!process.env.DEV_GUILD_ID)
-                throw new Error("Unable to register guild commands, guild id is missing.");
-
             const guildId = process.env.DEV_GUILD_ID;
-            let guildCommands: Collection<string, ApplicationCommand>;
+            if (!guildId) throw new Error("Unable to register guild commands, guild id is missing.");
 
-            try {
-                guildCommands = await appCommands.fetch({ guildId, withLocalizations: true });
-            } catch {
+            const guildCommands = await appCommands.fetch({ guildId, withLocalizations: true }).catch(() => {
                 throw new Error(`Failed to fetch guild commands for guild '${guildId}'`);
-            }
+            });
 
             await Promise.allSettled(
                 [...this._commands.values()].map(async (cmd) =>
@@ -180,21 +176,34 @@ export class CommandStore extends Store<Command> {
         guildId?: string
     ) {
         const appCommand = appCommands.find((entry) => entry.name === command.name);
+        this.logger.trace("Registering '%s' command...", command.name);
 
         if (!appCommand) {
-            return (async () => {
-                this.logger.debug("Creating new commands '%s' with data %o", command.name, command);
+            this.logger.trace("Command doesn't exist, creating one with data=%o", command);
+
+            try {
                 await (guildId ? commandsManager.create(command, guildId) : commandsManager.create(command));
-            })();
+            } catch (error: unknown) {
+                this.logger.error("Failed to create '%s' command.", command.name, error);
+            }
+
+            return;
         }
 
         if (!appCommand.equals(command)) {
-            return (async () => {
-                this.logger.debug("Updating commands '%s' with data '%o'", command.name, command);
+            this.logger.trace("Command doesn't match, updating with data=%o", command);
+
+            try {
                 await (guildId
                     ? commandsManager.edit(appCommand, command, guildId)
                     : commandsManager.edit(appCommand, command));
-            })();
+            } catch (error: unknown) {
+                this.logger.error("Failed to update '%s' command.", command.name, error);
+            }
+
+            return;
         }
+
+        this.logger.trace("Command already registered, skipping.");
     }
 }

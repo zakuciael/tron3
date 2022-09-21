@@ -35,6 +35,8 @@ export class TronClient extends Client {
         super(options);
 
         this.logger = new Logger();
+        this.logger.info("Initializing client...");
+        this.logger.debug("Initializing dependency injection container...");
         this.container = new Container({ defaultScope: "Singleton" });
 
         // Bind TronClient to the container
@@ -44,9 +46,9 @@ export class TronClient extends Client {
         this.container.bind(Logger).toDynamicValue((context) => {
             const { target } = context.currentRequest;
 
-            if (target.isNamed()) return this.logger.createLabeled(target.getNamedTag()!.value);
+            if (target.isNamed()) return new Logger(target.getNamedTag()!.value);
             if (target.isTagged() && target.hasTag(LABEL))
-                return this.logger.createLabeled(
+                return new Logger(
                     target.getCustomTags()!.find((tag) => tag.key === LABEL)!.value as string | string[]
                 );
 
@@ -54,10 +56,12 @@ export class TronClient extends Client {
         });
 
         // Register stores
+        this.logger.debug("Initializing store registry...");
         this.stores = new StoreRegistry();
         this.stores.register(new CommandStore({ container: this.container, client: this }));
         this.stores.registerPath(fileURLToPath(new URL("../", import.meta.url)));
 
+        this.logger.debug("Initializing event listeners...");
         // TODO: Remove when adding proper listeners system
         this.once("ready", async () => {
             // Fetch all guilds before loading commands
@@ -75,8 +79,14 @@ export class TronClient extends Client {
     }
 
     public override async login(token?: string): Promise<string> {
-        // Load all stores, and then call login
+        this.logger.debug("Loading all stores...");
         await this.stores.load();
-        return super.login(token);
+
+        this.logger.info("Authenticating...");
+        const now = Date.now();
+        return super.login(token).then((token) => {
+            this.logger.info(`Took ${(Date.now() - now).toLocaleString()}ms to authenticate.`);
+            return token;
+        });
     }
 }
