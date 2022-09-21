@@ -23,7 +23,8 @@ export class CommandStore extends Store<Command> {
     }
 
     public async register(): Promise<void> {
-        if (!this.client.application) throw new Error("Ho Lee Fuk");
+        // Early escape when application is not properly loaded.
+        if (!this.client.application) return;
 
         this.logger.info("Initializing commands...");
         const now = Date.now();
