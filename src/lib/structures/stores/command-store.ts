@@ -41,17 +41,12 @@ export class CommandStore extends Store<Command> {
         }
 
         if (process.env.NODE_ENV === "development") {
-            if (!process.env.DEV_GUILD_ID)
-                throw new Error("Unable to register guild commands, guild id is missing.");
-
             const guildId = process.env.DEV_GUILD_ID;
-            let guildCommands: Collection<string, ApplicationCommand>;
+            if (!guildId) throw new Error("Unable to register guild commands, guild id is missing.");
 
-            try {
-                guildCommands = await appCommands.fetch({ guildId, withLocalizations: true });
-            } catch {
+            const guildCommands = await appCommands.fetch({ guildId, withLocalizations: true }).catch(() => {
                 throw new Error(`Failed to fetch guild commands for guild '${guildId}'`);
-            }
+            });
 
             await Promise.allSettled(
                 [...this._commands.values()].map(async (cmd) =>
