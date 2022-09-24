@@ -6,8 +6,12 @@
 
 import { basename, extname, relative, sep } from "node:path";
 import process from "node:process";
-import type { ApplicationCommand, ChatInputApplicationCommandData, Collection } from "discord.js";
-import { ApplicationCommandManager } from "discord.js";
+import {
+    ApplicationCommand,
+    ApplicationCommandManager,
+    ChatInputApplicationCommandData,
+    Collection
+} from "discord.js";
 // eslint-disable-next-line n/file-extension-in-import
 import { ApplicationCommandOptionType } from "discord-api-types/v10";
 import type { FileMetadata, NamedStoreOptions } from "~/lib/structures/store.js";
@@ -16,7 +20,7 @@ import { Command } from "~/lib/structures/bases/command.js";
 import type { CommandOptionData } from "~/lib/interfaces/command-options.js";
 
 export class CommandStore extends Store<Command> {
-    private readonly _commands = new Map<string, ChatInputApplicationCommandData>();
+    private readonly _commands = new Collection<string, ChatInputApplicationCommandData>();
 
     constructor(options: NamedStoreOptions) {
         super(Command as any, { ...options, name: "commands" });
@@ -31,31 +35,33 @@ export class CommandStore extends Store<Command> {
 
         const appCommands = this.client.application.commands;
 
-        // TODO: Handle removed commands
-
         if (process.env.NODE_ENV === "production") {
             const globalCommands = await appCommands.fetch({ withLocalizations: true });
 
-            await Promise.allSettled(
-                [...this._commands.values()].map(async (cmd) =>
-                    this.register(cmd, appCommands, globalCommands)
-                )
+            const unregisterTasks = globalCommands
+                .filter((cmd) => !this._commands.has(cmd.name))
+                .map(async (cmd) => this.unregister(cmd, appCommands, globalCommands));
+            const registerTasks = this._commands.map(async (cmd) =>
+                this.register(cmd, appCommands, globalCommands)
             );
+
+            await Promise.allSettled([...unregisterTasks, ...registerTasks]);
         }
 
         if (process.env.NODE_ENV === "development") {
             const guildId = process.env.DEV_GUILD_ID;
             if (!guildId) throw new Error("Unable to register guild commands, guild id is missing.");
 
-            const guildCommands = await appCommands.fetch({ guildId, withLocalizations: true }).catch(() => {
-                throw new Error(`Failed to fetch guild commands for guild '${guildId}'`);
-            });
+            const guildCommands = await appCommands.fetch({ guildId, withLocalizations: true });
 
-            await Promise.allSettled(
-                [...this._commands.values()].map(async (cmd) =>
-                    this.register(cmd, appCommands, guildCommands, guildId)
-                )
+            const unregisterTasks = guildCommands
+                .filter((cmd) => !this._commands.has(cmd.name))
+                .map(async (cmd) => this.unregister(cmd, appCommands, guildCommands, guildId));
+            const registerTasks = this._commands.map(async (cmd) =>
+                this.register(cmd, appCommands, guildCommands, guildId)
             );
+
+            await Promise.allSettled([...unregisterTasks, ...registerTasks]);
         }
 
         this.logger.info(`Took ${(Date.now() - now).toLocaleString()}ms to initialize commands`);
@@ -178,7 +184,6 @@ export class CommandStore extends Store<Command> {
         appCommands: Collection<string, ApplicationCommand>,
         guildId?: string
     ) {
-        // TODO: Handle removed commands
         const appCommand = appCommands.find((entry) => entry.name === command.name);
         this.logger.trace("Registering '%s' command...", command.name);
 
@@ -209,5 +214,29 @@ export class CommandStore extends Store<Command> {
         }
 
         this.logger.trace("Command already registered, skipping.");
+    }
+
+    private async unregister(
+        command: ApplicationCommand,
+        commandsManager: ApplicationCommandManager,
+        appCommands: Collection<string, ApplicationCommand>,
+        guildId?: string
+    ) {
+        const appCommand = appCommands.find((entry) => entry.name === command.name);
+        this.logger.trace("Unregistering '%s' command...", command.name);
+
+        if (!appCommand) {
+            this.logger.trace("Command already unregistered, skipping.");
+            return;
+        }
+
+        try {
+            await (guildId ? commandsManager.delete(command, guildId) : commandsManager.delete(command));
+        } catch (error: unknown) {
+            this.logger.error("Failed to unregister '%s' command.", command.name, error);
+            return;
+        }
+
+        this.logger.trace("Command unregistered successfully.");
     }
 }
