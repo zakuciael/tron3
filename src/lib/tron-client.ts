@@ -67,7 +67,7 @@ export class TronClient extends Client {
             // Fetch all guilds before loading commands
             await this.guilds.fetch();
 
-            await this.stores.get("commands").register();
+            await this.stores.get("commands").registerAll();
         });
 
         this.on("interactionCreate", async (interaction) => {

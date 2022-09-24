@@ -22,7 +22,7 @@ export class CommandStore extends Store<Command> {
         super(Command as any, { ...options, name: "commands" });
     }
 
-    public async register(): Promise<void> {
+    public async registerAll(): Promise<void> {
         // Early escape when application is not properly loaded.
         if (!this.client.application) return;
 
@@ -30,12 +30,15 @@ export class CommandStore extends Store<Command> {
         const now = Date.now();
 
         const appCommands = this.client.application.commands;
-        const globalCommands = await appCommands.fetch({ withLocalizations: true });
+
+        // TODO: Handle removed commands
 
         if (process.env.NODE_ENV === "production") {
+            const globalCommands = await appCommands.fetch({ withLocalizations: true });
+
             await Promise.allSettled(
                 [...this._commands.values()].map(async (cmd) =>
-                    this.registerCommand(cmd, appCommands, globalCommands)
+                    this.register(cmd, appCommands, globalCommands)
                 )
             );
         }
@@ -50,7 +53,7 @@ export class CommandStore extends Store<Command> {
 
             await Promise.allSettled(
                 [...this._commands.values()].map(async (cmd) =>
-                    this.registerCommand(cmd, appCommands, guildCommands, guildId)
+                    this.register(cmd, appCommands, guildCommands, guildId)
                 )
             );
         }
@@ -62,7 +65,7 @@ export class CommandStore extends Store<Command> {
         await super.loadAll();
 
         for (const meta of this.metas) {
-            const command = this.resolveCommand(meta);
+            const command = this.resolve(meta);
             this._commands.set(command.name, command);
         }
     }
@@ -71,7 +74,7 @@ export class CommandStore extends Store<Command> {
         return super.insert(metadata);
     }
 
-    private resolveCommand(meta: FileMetadata<Command>): ChatInputApplicationCommandData {
+    private resolve(meta: FileMetadata<Command>): ChatInputApplicationCommandData {
         const {
             path,
             root,
@@ -169,12 +172,13 @@ export class CommandStore extends Store<Command> {
         }
     }
 
-    private async registerCommand(
+    private async register(
         command: ChatInputApplicationCommandData,
         commandsManager: ApplicationCommandManager,
         appCommands: Collection<string, ApplicationCommand>,
         guildId?: string
     ) {
+        // TODO: Handle removed commands
         const appCommand = appCommands.find((entry) => entry.name === command.name);
         this.logger.trace("Registering '%s' command...", command.name);
 
