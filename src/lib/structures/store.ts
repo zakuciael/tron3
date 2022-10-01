@@ -7,12 +7,11 @@
 import { promises as fsp } from "node:fs";
 import { extname, join } from "node:path";
 import type { interfaces } from "inversify";
-import is from "@sindresorhus/is";
 import type { Client } from "discord.js";
 import { Logger } from "~/lib/utils/logger.js";
-import { classExtends } from "~/lib/utils/class.js";
 import { toPascal, toSingular } from "~/lib/utils/string.js";
 import { dynamicImport } from "~/lib/utils/import.js";
+import { isClass, isPrototypeInstanceOf } from "~/lib/utils/checks.js";
 
 type ErrorWithCode = Error & { code: string };
 
@@ -59,7 +58,7 @@ export class Store<T> {
                 const { serviceIdentifier } = context.plan.rootRequest;
 
                 if (!logger) throw new Error(`Could not find a parent logger`);
-                if (!is.class_(serviceIdentifier))
+                if (!isClass(serviceIdentifier))
                     throw new Error(`Requested logger via non-class service identifier`);
 
                 return new Logger([displayName, serviceIdentifier.name]);
@@ -142,10 +141,10 @@ export class Store<T> {
     private async loadFile(path: string): Promise<interfaces.Newable<T> | undefined> {
         const imported = await dynamicImport<T>(path);
 
-        if (is.class_(imported) && classExtends(imported, this.ctor)) return imported;
+        if (isClass(imported) && isPrototypeInstanceOf(imported, this.ctor)) return imported;
 
         for (const value of Object.values(imported)) {
-            if (is.class_(value) && classExtends(value, this.ctor)) return value;
+            if (isClass(value) && isPrototypeInstanceOf(value, this.ctor)) return value;
         }
 
         this.logger.trace("Skipped file '%s' as it does not export anything", path);
