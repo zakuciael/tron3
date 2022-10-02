@@ -38,6 +38,7 @@ module.exports = {
         "@typescript-eslint/naming-convention": "off",
         "@typescript-eslint/consistent-type-definitions": "off",
         "@typescript-eslint/unified-signatures": "off",
+        "@typescript-eslint/class-literal-property-style": "off",
         "import/no-unassigned-import": [
             "error",
             {
