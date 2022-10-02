@@ -13,7 +13,7 @@ export class CoreReady extends Listener<Events.ClientReady> {
     public readonly once = true;
     public readonly event = Events.ClientReady;
 
-    async run(client: Client): Promise<void> {
+    async execute(client: Client): Promise<void> {
         // Fetch all guilds before loading commands
         await client.guilds.fetch();
 

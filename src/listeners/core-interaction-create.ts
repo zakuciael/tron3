@@ -12,7 +12,7 @@ export class CoreInteractionCreate extends Listener<Events.InteractionCreate> {
     public readonly once = false;
     public readonly event = Events.InteractionCreate;
 
-    async run(interaction: Interaction): Promise<void> {
+    async execute(interaction: Interaction): Promise<void> {
         console.log(interaction);
 
         if (interaction.isChatInputCommand()) await interaction.reply("TEMP");

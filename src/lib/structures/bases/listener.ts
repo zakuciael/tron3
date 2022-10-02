@@ -18,5 +18,5 @@ export abstract class Listener<E extends keyof ClientEvents = ""> {
 
     abstract readonly event: E;
 
-    public abstract run(...args: ClientEvents[E]): Promise<void>;
+    public abstract execute(...args: ClientEvents[E]): Promise<void>;
 }

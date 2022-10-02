@@ -24,7 +24,7 @@ export class ListenerStore extends Store<Listener> {
                     ? (Reflect.get(this.client, clazz.emitter) as EventEmitter)
                     : clazz.emitter;
 
-            usedEmitter[clazz.once ? "once" : "on"](clazz.event, clazz.run.bind(clazz));
+            usedEmitter[clazz.once ? "once" : "on"](clazz.event, clazz.execute.bind(clazz));
         }
     }
 }
