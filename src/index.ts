@@ -8,7 +8,7 @@ import "reflect-metadata";
 import "dotenv/config.js";
 import process from "node:process";
 import { IntentsBitField, Partials } from "discord.js";
-import { TronClient } from "~/lib/tron-client.js";
+import { TronClient } from "~/lib/client.js";
 
 const bot = new TronClient({
     intents: [
