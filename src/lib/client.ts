@@ -43,17 +43,20 @@ export class TronClient extends Client {
         this.container.bind(Client).toConstantValue(this);
 
         // Bind logger to the container
-        this.container.bind(Logger).toDynamicValue((context) => {
-            const { target } = context.currentRequest;
+        this.container
+            .bind(Logger)
+            .toDynamicValue((context) => {
+                const { target } = context.currentRequest;
 
-            if (target.isNamed()) return new Logger(target.getNamedTag()!.value);
-            if (target.isTagged() && target.hasTag(LABEL))
-                return new Logger(
-                    target.getCustomTags()!.find((tag) => tag.key === LABEL)!.value as string | string[]
-                );
+                if (target.isNamed()) return new Logger(target.getNamedTag()!.value);
+                if (target.isTagged() && target.hasTag(LABEL))
+                    return new Logger(
+                        target.getCustomTags()!.find((tag) => tag.key === LABEL)!.value as string | string[]
+                    );
 
-            return this.logger;
-        });
+                return this.logger;
+            })
+            .inTransientScope();
 
         // Register stores
         this.logger.debug("Initializing store registry...");

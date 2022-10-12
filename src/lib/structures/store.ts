@@ -63,7 +63,7 @@ export class Store<T> {
 
                 return new Logger([displayName, serviceIdentifier.name]);
             })
-            .inSingletonScope();
+            .inTransientScope();
     }
 
     get name(): string {
