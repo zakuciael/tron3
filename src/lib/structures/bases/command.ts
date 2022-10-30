@@ -6,7 +6,7 @@
 
 import type { AutocompleteInteraction, Awaitable, PermissionResolvable } from "discord.js";
 import { Injectable } from "~/lib/decorators/injectable.js";
-import type { CommandOptionData, GetOptions } from "~/lib/interfaces/command-options.js";
+import type { CommandOptionData, GetOptions } from "~/lib/types/command-options.js";
 
 @Injectable
 export abstract class Command {

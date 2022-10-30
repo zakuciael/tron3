@@ -17,7 +17,7 @@ import { ApplicationCommandOptionType } from "discord-api-types/v10";
 import type { FileMetadata, NamedStoreOptions } from "~/lib/structures/store.js";
 import { Store } from "~/lib/structures/store.js";
 import { Command } from "~/lib/structures/bases/command.js";
-import type { CommandOptionData } from "~/lib/interfaces/command-options.js";
+import type { CommandOptionData } from "~/lib/types/command-options.js";
 
 export class CommandStore extends Store<Command> {
     private readonly _commands = new Collection<string, ChatInputApplicationCommandData>();
