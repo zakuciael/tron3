@@ -14,7 +14,7 @@ import { LABEL } from "@zakku/winston-logs";
 import { Injectable } from "~/lib/decorators/injectable.js";
 import { Logger } from "~/lib/utils/logger.js";
 import { StoreRegistry } from "~/lib/structures/store-registry.js";
-import { CommandStore } from "~/lib/structures/stores/command-store.js";
+import { SlashCommandStore } from "~/lib/structures/stores/slash-command-store.js";
 import { ListenerStore } from "~/lib/structures/stores/listener-store.js";
 
 declare module "discord.js" {
@@ -61,7 +61,7 @@ export class TronClient extends Client {
         // Register stores
         this.logger.debug("Initializing store registry...");
         this.stores = new StoreRegistry();
-        this.stores.register(new CommandStore({ container: this.container, client: this }));
+        this.stores.register(new SlashCommandStore({ container: this.container, client: this }));
         this.stores.register(new ListenerStore({ container: this.container, client: this }));
         this.stores.registerPath(fileURLToPath(new URL("../", import.meta.url)));
     }

@@ -12,7 +12,7 @@ import type {
 } from "~/lib/types/slash-command-options.js";
 
 @Injectable
-export abstract class Command {
+export abstract class SlashCommand {
     public defaultMemberPermissions?: PermissionResolvable;
     public allowDM?: boolean;
 

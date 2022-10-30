@@ -7,14 +7,14 @@
 import { join } from "node:path";
 import { Collection } from "discord.js";
 import { Store } from "~/lib/structures/store.js";
-import type { CommandStore } from "~/lib/structures/stores/command-store.js";
+import type { SlashCommandStore } from "~/lib/structures/stores/slash-command-store.js";
 import type { ListenerStore } from "~/lib/structures/stores/listener-store.js";
 
 type Key = keyof StoreRegistryEntries;
 type Value = StoreRegistryEntries[Key];
 
 interface StoreRegistryEntries {
-    commands: CommandStore;
+    commands: SlashCommandStore;
     listeners: ListenerStore;
 }
 
