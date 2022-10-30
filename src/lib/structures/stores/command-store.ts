@@ -17,7 +17,7 @@ import { ApplicationCommandOptionType } from "discord-api-types/v10";
 import type { FileMetadata, NamedStoreOptions } from "~/lib/structures/store.js";
 import { Store } from "~/lib/structures/store.js";
 import { Command } from "~/lib/structures/bases/command.js";
-import type { CommandOptionData } from "~/lib/types/command-options.js";
+import type { SlashCommandOptionData } from "~/lib/types/slash-command-options.js";
 
 export class CommandStore extends Store<Command> {
     private readonly _commands = new Collection<string, ChatInputApplicationCommandData>();
@@ -96,7 +96,7 @@ export class CommandStore extends Store<Command> {
                     name: fileName,
                     description,
                     defaultMemberPermissions: defaultMemberPermissions ?? null,
-                    ...(options.length > 0 ? { options: options as CommandOptionData[] } : undefined),
+                    ...(options.length > 0 ? { options: options as SlashCommandOptionData[] } : undefined),
                     ...(typeof allowDM !== "undefined" && !allowDM ? { dmPermission: false } : undefined)
                 };
             }
@@ -118,7 +118,7 @@ export class CommandStore extends Store<Command> {
                     name: fileName,
                     type: ApplicationCommandOptionType.Subcommand,
                     description,
-                    ...(options.length > 0 ? { options: options as CommandOptionData[] } : undefined)
+                    ...(options.length > 0 ? { options: options as SlashCommandOptionData[] } : undefined)
                 });
 
                 return command;
@@ -149,7 +149,7 @@ export class CommandStore extends Store<Command> {
                         name: fileName,
                         type: ApplicationCommandOptionType.Subcommand,
                         description,
-                        ...(options.length > 0 ? { options: options as CommandOptionData[] } : undefined)
+                        ...(options.length > 0 ? { options: options as SlashCommandOptionData[] } : undefined)
                     });
                 } else {
                     command.options?.push({
@@ -162,7 +162,7 @@ export class CommandStore extends Store<Command> {
                                 type: ApplicationCommandOptionType.Subcommand,
                                 description,
                                 ...(options.length > 0
-                                    ? { options: options as CommandOptionData[] }
+                                    ? { options: options as SlashCommandOptionData[] }
                                     : undefined)
                             }
                         ]
