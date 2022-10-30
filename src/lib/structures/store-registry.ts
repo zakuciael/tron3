@@ -6,6 +6,7 @@
 
 import { join } from "node:path";
 import { Collection } from "discord.js";
+import { interfaces } from "inversify";
 import { Store } from "~/lib/structures/store.js";
 import type { SlashCommandStore } from "~/lib/structures/stores/slash-command-store.js";
 import type { ListenerStore } from "~/lib/structures/stores/listener-store.js";
@@ -29,6 +30,10 @@ export interface StoreRegistry {
 }
 
 export class StoreRegistry extends Collection<Key, Value> {
+    constructor(private readonly container: interfaces.Container) {
+        super();
+    }
+
     public async load() {
         const promises: Array<Promise<void>> = [];
         for (const store of this.values()) {
@@ -46,11 +51,15 @@ export class StoreRegistry extends Collection<Key, Value> {
 
     public register<T>(store: Store<T>): this {
         this.set(store.name as Key, store as unknown as Value);
+        this.container.bind(store.constructor).toConstantValue(store);
+
         return this;
     }
 
     public deregister<T>(store: Store<T>): this {
         this.delete(store.name as Key);
+        this.container.unbind(store.constructor);
+
         return this;
     }
 }
