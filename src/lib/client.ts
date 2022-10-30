@@ -34,7 +34,7 @@ export class TronClient extends Client {
     constructor(options: ClientOptions) {
         super(options);
 
-        this.logger = new Logger();
+        this.logger = new Logger("Core");
         this.logger.info("Initializing client...");
         this.logger.debug("Initializing dependency injection container...");
         this.container = new Container({ defaultScope: "Singleton" });
