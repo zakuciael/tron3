@@ -16,21 +16,21 @@ import {
 import { ApplicationCommandOptionType } from "discord-api-types/v10";
 import type { FileMetadata, NamedStoreOptions } from "~/lib/structures/store.js";
 import { Store } from "~/lib/structures/store.js";
-import { Command } from "~/lib/structures/bases/command.js";
-import type { CommandOptionData } from "~/lib/interfaces/command-options.js";
+import { SlashCommand } from "~/lib/structures/bases/slash-command.js";
+import type { SlashCommandOptionData } from "~/lib/types/slash-command-options.js";
 
-export class CommandStore extends Store<Command> {
+export class SlashCommandStore extends Store<SlashCommand> {
     private readonly _commands = new Collection<string, ChatInputApplicationCommandData>();
 
     constructor(options: NamedStoreOptions) {
-        super(Command as any, { ...options, name: "commands" });
+        super(SlashCommand as any, { ...options, name: "commands" });
     }
 
     public async registerAll(): Promise<void> {
         // Early escape when application is not properly loaded.
         if (!this.client.application) return;
 
-        this.logger.info("Initializing commands...");
+        this.logger.info("Initializing slash commands...");
         const now = Date.now();
 
         const appCommands = this.client.application.commands;
@@ -50,7 +50,7 @@ export class CommandStore extends Store<Command> {
 
         if (process.env.NODE_ENV === "development") {
             const guildId = process.env.DEV_GUILD_ID;
-            if (!guildId) throw new Error("Unable to register guild commands, guild id is missing.");
+            if (!guildId) throw new Error("Unable to register guild slash commands, guild id is missing.");
 
             const guildCommands = await appCommands.fetch({ guildId, withLocalizations: true });
 
@@ -64,7 +64,7 @@ export class CommandStore extends Store<Command> {
             await Promise.allSettled([...unregisterTasks, ...registerTasks]);
         }
 
-        this.logger.info(`Took ${(Date.now() - now).toLocaleString()}ms to initialize commands`);
+        this.logger.info(`Took ${(Date.now() - now).toLocaleString()}ms to initialize slash commands`);
     }
 
     public override async loadAll(): Promise<void> {
@@ -76,11 +76,11 @@ export class CommandStore extends Store<Command> {
         }
     }
 
-    protected override async insert(metadata: FileMetadata<Command>): Promise<void> {
+    protected override async insert(metadata: FileMetadata<SlashCommand>): Promise<void> {
         return super.insert(metadata);
     }
 
-    private resolve(meta: FileMetadata<Command>): ChatInputApplicationCommandData {
+    private resolve(meta: FileMetadata<SlashCommand>): ChatInputApplicationCommandData {
         const {
             path,
             root,
@@ -96,7 +96,7 @@ export class CommandStore extends Store<Command> {
                     name: fileName,
                     description,
                     defaultMemberPermissions: defaultMemberPermissions ?? null,
-                    ...(options.length > 0 ? { options: options as CommandOptionData[] } : undefined),
+                    ...(options.length > 0 ? { options: options as SlashCommandOptionData[] } : undefined),
                     ...(typeof allowDM !== "undefined" && !allowDM ? { dmPermission: false } : undefined)
                 };
             }
@@ -112,13 +112,15 @@ export class CommandStore extends Store<Command> {
                 };
 
                 if (command.options?.find((opt) => opt.name === fileName))
-                    throw new Error(`Command '${relative(root, path)}' is already defined in another file`);
+                    throw new Error(
+                        `Slash command '${relative(root, path)}' is already defined in another file`
+                    );
 
                 command.options?.push({
                     name: fileName,
                     type: ApplicationCommandOptionType.Subcommand,
                     description,
-                    ...(options.length > 0 ? { options: options as CommandOptionData[] } : undefined)
+                    ...(options.length > 0 ? { options: options as SlashCommandOptionData[] } : undefined)
                 });
 
                 return command;
@@ -142,14 +144,14 @@ export class CommandStore extends Store<Command> {
                         group.options?.find((opt) => opt.name === fileName)
                     )
                         throw new Error(
-                            `Command '${relative(root, path)}' is already defined in another file`
+                            `Slash command '${relative(root, path)}' is already defined in another file`
                         );
 
                     group.options?.push({
                         name: fileName,
                         type: ApplicationCommandOptionType.Subcommand,
                         description,
-                        ...(options.length > 0 ? { options: options as CommandOptionData[] } : undefined)
+                        ...(options.length > 0 ? { options: options as SlashCommandOptionData[] } : undefined)
                     });
                 } else {
                     command.options?.push({
@@ -162,7 +164,7 @@ export class CommandStore extends Store<Command> {
                                 type: ApplicationCommandOptionType.Subcommand,
                                 description,
                                 ...(options.length > 0
-                                    ? { options: options as CommandOptionData[] }
+                                    ? { options: options as SlashCommandOptionData[] }
                                     : undefined)
                             }
                         ]
@@ -173,7 +175,7 @@ export class CommandStore extends Store<Command> {
             }
 
             default: {
-                throw new Error(`Invalid command folder structure, max depth reached.`);
+                throw new Error(`Invalid slash commands folder structure, max depth reached.`);
             }
         }
     }
@@ -185,35 +187,35 @@ export class CommandStore extends Store<Command> {
         guildId?: string
     ) {
         const appCommand = appCommands.find((entry) => entry.name === command.name);
-        this.logger.trace("Registering '%s' command...", command.name);
+        this.logger.trace("Registering '%s' slash command...", command.name);
 
         if (!appCommand) {
-            this.logger.trace("Command doesn't exist, creating one with data=%o", command);
+            this.logger.trace("Slash command doesn't exist, creating one with data=%o", command);
 
             try {
                 await (guildId ? commandsManager.create(command, guildId) : commandsManager.create(command));
             } catch (error: unknown) {
-                this.logger.error("Failed to create '%s' command.", command.name, error);
+                this.logger.error("Failed to create '%s' slash command.", command.name, error);
             }
 
             return;
         }
 
         if (!appCommand.equals(command)) {
-            this.logger.trace("Command doesn't match, updating with data=%o", command);
+            this.logger.trace("Slash command doesn't match, updating with data=%o", command);
 
             try {
                 await (guildId
                     ? commandsManager.edit(appCommand, command, guildId)
                     : commandsManager.edit(appCommand, command));
             } catch (error: unknown) {
-                this.logger.error("Failed to update '%s' command.", command.name, error);
+                this.logger.error("Failed to update '%s' slash command.", command.name, error);
             }
 
             return;
         }
 
-        this.logger.trace("Command already registered, skipping.");
+        this.logger.trace("Slash command already registered, skipping.");
     }
 
     private async unregister(
@@ -223,20 +225,20 @@ export class CommandStore extends Store<Command> {
         guildId?: string
     ) {
         const appCommand = appCommands.find((entry) => entry.name === command.name);
-        this.logger.trace("Unregistering '%s' command...", command.name);
+        this.logger.trace("Unregistering '%s' slash command...", command.name);
 
         if (!appCommand) {
-            this.logger.trace("Command already unregistered, skipping.");
+            this.logger.trace("Slash command already unregistered, skipping.");
             return;
         }
 
         try {
             await (guildId ? commandsManager.delete(command, guildId) : commandsManager.delete(command));
         } catch (error: unknown) {
-            this.logger.error("Failed to unregister '%s' command.", command.name, error);
+            this.logger.error("Failed to unregister '%s' slash command.", command.name, error);
             return;
         }
 
-        this.logger.trace("Command unregistered successfully.");
+        this.logger.trace("Slash command unregistered successfully.");
     }
 }
