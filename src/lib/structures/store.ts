@@ -9,7 +9,7 @@ import { extname, join } from "node:path";
 import type { interfaces } from "inversify";
 import type { Client } from "discord.js";
 import { Logger } from "~/lib/utils/logger.js";
-import { toPascal, toSingular } from "~/lib/utils/string.js";
+import { toSingular } from "~/lib/utils/string.js";
 import { dynamicImport } from "~/lib/utils/import.js";
 import { isClass, isPrototypeInstanceOf } from "~/lib/utils/checks.js";
 
@@ -47,17 +47,15 @@ export class Store<T> {
         this.paths = new Set(options.paths ?? []);
         this.metas = new Set();
 
-        const displayName = toSingular(toPascal(this._name));
+        const displayName = toSingular(this.ctor.name);
         this.logger = this._container.getNamed(Logger, `${displayName}Store`);
 
         // Register a dynamic logger for all classes loaded by this store.
         this._container
             .bind(Logger)
             .toDynamicValue((context) => {
-                const logger = context.container.parent?.get(Logger);
                 const { serviceIdentifier } = context.plan.rootRequest;
 
-                if (!logger) throw new Error(`Could not find a parent logger`);
                 if (!isClass(serviceIdentifier))
                     throw new Error(`Requested logger via non-class service identifier`);
 
