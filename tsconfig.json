@@ -15,7 +15,6 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": false,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
     "pretty": true,
     "strict": true,
     "experimentalDecorators": true,
