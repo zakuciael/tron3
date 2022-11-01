@@ -1,7 +1,7 @@
 {
   "**/*.{ts,js, cjs, mjs, cts, mts}": [
     "prettier --write",
-    "xo --fix",
+    "eslint --fix",
     "tsc-files --noEmit"
   ],
   "**/*.json": [

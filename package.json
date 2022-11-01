@@ -28,7 +28,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "husky:init": "husky install",
-    "lint": "xo --fix",
+    "lint": "eslint --fix src/**/*.ts",
     "clean": "rimraf build/",
     "build": "swc src/ -d build/",
     "start": "node build/index.js",
