@@ -14,15 +14,17 @@ import type {
     ChatInputApplicationCommandData,
     ChatInputCommandInteraction
 } from "discord.js";
-import { ApplicationCommandOptionType, Collection } from "discord.js";
+import {
+    ApplicationCommandOptionType,
+    AutocompleteInteraction,
+    Collection,
+    CommandInteractionOptionResolver
+} from "discord.js";
 import type { interfaces } from "inversify";
 import type { FileMetadata, NamedStoreOptions } from "~/lib/structures/store.js";
 import { Store } from "~/lib/structures/store.js";
 import { SlashCommand } from "~/lib/structures/bases/slash-command.js";
-import type {
-    SlashCommandOptionData,
-    SlashCommandOptionResolver
-} from "~/lib/types/slash-command-options.js";
+import type { SlashCommandOptionData } from "~/lib/types/slash-command-options.js";
 import { SLASH_COMMAND_OPTIONS_TAG } from "~/lib/utils/constants.js";
 import { isSubcommandData, isSubcommandGroupData } from "~/lib/utils/interactions.js";
 
@@ -33,7 +35,7 @@ export class SlashCommandStore extends Store<SlashCommand> {
         super(SlashCommand as any, { ...options, name: "commands" });
     }
 
-    public get(interaction: ChatInputCommandInteraction): SlashCommand {
+    public get(interaction: ChatInputCommandInteraction | AutocompleteInteraction): SlashCommand {
         return this.container.getTagged<SlashCommand>(
             interaction.commandName,
             SLASH_COMMAND_OPTIONS_TAG,
@@ -114,7 +116,7 @@ export class SlashCommandStore extends Store<SlashCommand> {
                     .getCustomTags()!
                     .find(
                         (tags) => tags.key === SLASH_COMMAND_OPTIONS_TAG
-                    )! as interfaces.Metadata<SlashCommandOptionResolver>;
+                    )! as interfaces.Metadata<CommandInteractionOptionResolver>;
 
                 if (!optionsResolver.getSubcommandGroup() && optionsResolver.getSubcommand())
                     return commandOptions.some(

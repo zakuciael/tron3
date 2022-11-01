@@ -5,6 +5,7 @@
  */
 
 import type {
+    AutocompleteFocusedOption,
     AutocompleteInteraction,
     Awaitable,
     ChatInputCommandInteraction,
@@ -24,14 +25,13 @@ export abstract class SlashCommand {
     public abstract description: string;
     public abstract options: readonly SlashCommandOptionData[];
 
-    public autocomplete?<T extends this>(
+    public autocomplete?(
         interaction: AutocompleteInteraction,
-        focused: string,
-        options: InferSlashCommandOptionsType<T>
+        focused: AutocompleteFocusedOption
     ): Awaitable<unknown>;
 
-    public abstract execute<T extends this>(
+    public abstract execute(
         interaction: ChatInputCommandInteraction,
-        options: InferSlashCommandOptionsType<T>
+        options: InferSlashCommandOptionsType<this>
     ): Awaitable<unknown>;
 }
