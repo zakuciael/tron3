@@ -7,8 +7,7 @@
 import { fileURLToPath, URL } from "node:url";
 import type { interfaces } from "inversify";
 import { Container } from "inversify";
-import type { ClientOptions } from "discord.js";
-import { Client } from "discord.js";
+import { Client, ClientOptions } from "discord.js";
 import { LABEL } from "@zakku/winston-logs";
 import { Injectable } from "~/lib/decorators/injectable.js";
 import { Logger } from "~/lib/utils/logger.js";
