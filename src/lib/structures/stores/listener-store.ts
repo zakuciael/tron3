@@ -5,7 +5,8 @@
  */
 
 import type { EventEmitter } from "node:events";
-import { NamedStoreOptions, Store } from "~/lib/structures/store.js";
+import type { NamedStoreOptions } from "~/lib/structures/store.js";
+import { Store } from "~/lib/structures/store.js";
 import { Listener } from "~/lib/structures/bases/listener.js";
 
 export class ListenerStore extends Store<Listener> {

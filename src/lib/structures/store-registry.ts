@@ -6,8 +6,8 @@
 
 import { join } from "node:path";
 import { Collection } from "discord.js";
-import { interfaces } from "inversify";
-import { Store } from "~/lib/structures/store.js";
+import type { interfaces } from "inversify";
+import type { Store } from "~/lib/structures/store.js";
 import type { SlashCommandStore } from "~/lib/structures/stores/slash-command-store.js";
 import type { ListenerStore } from "~/lib/structures/stores/listener-store.js";
 
