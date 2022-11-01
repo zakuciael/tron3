@@ -60,10 +60,13 @@ export class TronClient extends Client {
 
         // Register stores
         this.logger.debug("Initializing store registry...");
-        this.stores = new StoreRegistry();
+        this.stores = new StoreRegistry(this.container);
         this.stores.register(new SlashCommandStore({ container: this.container, client: this }));
         this.stores.register(new ListenerStore({ container: this.container, client: this }));
         this.stores.registerPath(fileURLToPath(new URL("../", import.meta.url)));
+
+        // Bind store registry to the container
+        this.container.bind(StoreRegistry).toConstantValue(this.stores);
     }
 
     public override async login(token?: string): Promise<string> {

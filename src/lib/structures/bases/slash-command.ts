@@ -4,12 +4,18 @@
  * MIT Licensed
  */
 
-import type { AutocompleteInteraction, Awaitable, PermissionResolvable } from "discord.js";
-import { Injectable } from "~/lib/decorators/injectable.js";
+import type {
+    AutocompleteFocusedOption,
+    AutocompleteInteraction,
+    Awaitable,
+    ChatInputCommandInteraction,
+    PermissionResolvable
+} from "discord.js";
 import type {
     InferSlashCommandOptionsType,
     SlashCommandOptionData
 } from "~/lib/types/slash-command-options.js";
+import { Injectable } from "~/lib/decorators/injectable.js";
 
 @Injectable
 export abstract class SlashCommand {
@@ -19,11 +25,13 @@ export abstract class SlashCommand {
     public abstract description: string;
     public abstract options: readonly SlashCommandOptionData[];
 
-    public autocomplete?<T extends this>(
+    public autocomplete?(
         interaction: AutocompleteInteraction,
-        focused: string,
-        options: InferSlashCommandOptionsType<T>
+        focused: AutocompleteFocusedOption
     ): Awaitable<unknown>;
 
-    public abstract execute<T extends this>(options: InferSlashCommandOptionsType<T>): Awaitable<unknown>;
+    public abstract execute(
+        interaction: ChatInputCommandInteraction,
+        options: InferSlashCommandOptionsType<this>
+    ): Awaitable<unknown>;
 }
