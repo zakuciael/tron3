@@ -22,6 +22,7 @@ export class CoreInteractionCreate extends Listener<Events.InteractionCreate> {
 
     async execute(interaction: Interaction): Promise<void> {
         // TODO: Handle message components and modals via interaction handlers
+        // TODO: Handle context menus via context menu handlers
 
         if (interaction.isChatInputCommand())
             this.client.emit(TronEvents.PossibleChatInputCommand, interaction);
