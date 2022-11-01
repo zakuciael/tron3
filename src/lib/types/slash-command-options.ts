@@ -11,6 +11,7 @@ import type {
     ApplicationCommandSubCommandData,
     ApplicationCommandSubGroupData,
     Channel,
+    ChatInputCommandInteraction,
     Role,
     User
 } from "discord.js";
@@ -19,6 +20,8 @@ export type SlashCommandOptionData = Exclude<
     ApplicationCommandOptionData,
     ApplicationCommandSubCommandData | ApplicationCommandSubGroupData
 >;
+
+export type SlashCommandOptionResolver = ChatInputCommandInteraction["options"];
 
 export interface SlashCommandOptionTypeMap {
     [ApplicationCommandOptionType.String]: string;
