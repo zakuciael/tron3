@@ -20,7 +20,7 @@ export type SlashCommandOptionData = Exclude<
     ApplicationCommandSubCommandData | ApplicationCommandSubGroupData
 >;
 
-interface SlashCommandOptionTypeMap {
+export interface SlashCommandOptionTypeMap {
     [ApplicationCommandOptionType.String]: string;
     [ApplicationCommandOptionType.Number]: number;
     [ApplicationCommandOptionType.Integer]: number;
@@ -30,11 +30,11 @@ interface SlashCommandOptionTypeMap {
     [ApplicationCommandOptionType.Role]: Role;
 }
 
-type ConvertSlashCommandOptionTypeToDataType<T> = T extends keyof SlashCommandOptionTypeMap
+export type ConvertSlashCommandOptionTypeToDataType<T> = T extends keyof SlashCommandOptionTypeMap
     ? SlashCommandOptionTypeMap[T]
     : never;
 
-type ConvertSlashCommandOptionDataToPropertyType<T> = T extends {
+export type ConvertSlashCommandOptionDataToPropertyType<T> = T extends {
     name: infer Name;
     type: infer Type;
     required?: infer Required;
@@ -44,7 +44,10 @@ type ConvertSlashCommandOptionDataToPropertyType<T> = T extends {
         : { [K in Name & string]?: ConvertSlashCommandOptionTypeToDataType<Type> }
     : never;
 
-type ConvertSlashCommandOptionDataArrayToPropertyUnionType<T> = T extends readonly [infer Head, ...infer Tail]
+export type ConvertSlashCommandOptionDataArrayToPropertyUnionType<T> = T extends readonly [
+    infer Head,
+    ...infer Tail
+]
     ? ConvertSlashCommandOptionDataToPropertyType<Head> &
           ConvertSlashCommandOptionDataArrayToPropertyUnionType<Tail>
     : T extends readonly [infer Head]
