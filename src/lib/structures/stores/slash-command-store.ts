@@ -6,18 +6,25 @@
 
 import { basename, extname, relative, sep } from "node:path";
 import process from "node:process";
-import {
+import type {
     ApplicationCommand,
     ApplicationCommandManager,
+    ApplicationCommandSubCommandData,
+    ApplicationCommandSubGroupData,
     ChatInputApplicationCommandData,
-    Collection
+    ChatInputCommandInteraction
 } from "discord.js";
-// eslint-disable-next-line n/file-extension-in-import
-import { ApplicationCommandOptionType } from "discord-api-types/v10";
+import { ApplicationCommandOptionType, Collection } from "discord.js";
+import type { interfaces } from "inversify";
 import type { FileMetadata, NamedStoreOptions } from "~/lib/structures/store.js";
 import { Store } from "~/lib/structures/store.js";
 import { SlashCommand } from "~/lib/structures/bases/slash-command.js";
-import type { SlashCommandOptionData } from "~/lib/types/slash-command-options.js";
+import type {
+    SlashCommandOptionData,
+    SlashCommandOptionResolver
+} from "~/lib/types/slash-command-options.js";
+import { SLASH_COMMAND_OPTIONS_TAG } from "~/lib/utils/constants.js";
+import { isSubcommandData, isSubcommandGroupData } from "~/lib/utils/interactions.js";
 
 export class SlashCommandStore extends Store<SlashCommand> {
     private readonly _commands = new Collection<string, ChatInputApplicationCommandData>();
@@ -76,8 +83,58 @@ export class SlashCommandStore extends Store<SlashCommand> {
         }
     }
 
-    protected override async insert(metadata: FileMetadata<SlashCommand>): Promise<void> {
-        return super.insert(metadata);
+    protected override async insert(meta: FileMetadata<SlashCommand>): Promise<void> {
+        const { name: commandName, options: commandOptions } = this.resolve(meta);
+
+        this.container
+            .bind<SlashCommand>(commandName)
+            .toConstantValue(meta.class)
+            .when((request) => {
+                const { target } = request;
+
+                if (
+                    !commandOptions?.length ||
+                    !commandOptions.some(
+                        (option) => isSubcommandData(option) || isSubcommandGroupData(option)
+                    )
+                )
+                    return true;
+
+                if (!target.hasTag(SLASH_COMMAND_OPTIONS_TAG)) return false;
+
+                const { value: optionsResolver } = target
+                    .getCustomTags()!
+                    .find(
+                        (tags) => tags.key === SLASH_COMMAND_OPTIONS_TAG
+                    )! as interfaces.Metadata<SlashCommandOptionResolver>;
+
+                if (!optionsResolver.getSubcommandGroup() && optionsResolver.getSubcommand())
+                    return commandOptions.some(
+                        (option): option is ApplicationCommandSubCommandData =>
+                            isSubcommandData(option) && option.name === optionsResolver.getSubcommand()
+                    );
+
+                if (optionsResolver.getSubcommandGroup() && optionsResolver.getSubcommand()) {
+                    const subcommandGroup = commandOptions.find(
+                        (option): option is ApplicationCommandSubGroupData =>
+                            isSubcommandGroupData(option) &&
+                            option.name === optionsResolver.getSubcommandGroup()
+                    );
+
+                    return (subcommandGroup?.options ?? []).some(
+                        (option): option is ApplicationCommandSubCommandData =>
+                            isSubcommandData(option) && option.name === optionsResolver.getSubcommand()
+                    );
+                }
+
+                this.logger.warn(
+                    "Unable to match requested interaction with a command handler. name=%s, options=%o, resolver=%o",
+                    commandName,
+                    commandOptions,
+                    optionsResolver
+                );
+                return false;
+            });
     }
 
     private resolve(meta: FileMetadata<SlashCommand>): ChatInputApplicationCommandData {
