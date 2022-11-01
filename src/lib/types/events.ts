@@ -6,7 +6,11 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error
-import type { AutocompleteInteraction, CommandInteraction, ContextMenuCommandInteraction } from "discord.js";
+import type {
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    ContextMenuCommandInteraction
+} from "discord.js";
 
 export enum TronEvents {
     PossibleChatInputCommand = "possibleChatInputCommand",
@@ -16,7 +20,7 @@ export enum TronEvents {
 
 declare module "discord.js" {
     interface ClientEvents {
-        [TronEvents.PossibleChatInputCommand]: [interaction: CommandInteraction];
+        [TronEvents.PossibleChatInputCommand]: [interaction: ChatInputCommandInteraction];
         [TronEvents.PossibleContextMenuCommand]: [interaction: ContextMenuCommandInteraction];
         [TronEvents.PossibleAutocompleteInteraction]: [interaction: AutocompleteInteraction];
     }

@@ -7,14 +7,14 @@
 import type {
     AutocompleteInteraction,
     Awaitable,
-    CommandInteraction,
+    ChatInputCommandInteraction,
     PermissionResolvable
 } from "discord.js";
-import { Injectable } from "~/lib/decorators/injectable.js";
 import type {
     InferSlashCommandOptionsType,
     SlashCommandOptionData
 } from "~/lib/types/slash-command-options.js";
+import { Injectable } from "~/lib/decorators/injectable.js";
 
 @Injectable
 export abstract class SlashCommand {
@@ -31,7 +31,7 @@ export abstract class SlashCommand {
     ): Awaitable<unknown>;
 
     public abstract execute<T extends this>(
-        interaction: CommandInteraction,
+        interaction: ChatInputCommandInteraction,
         options: InferSlashCommandOptionsType<T>
     ): Awaitable<unknown>;
 }
