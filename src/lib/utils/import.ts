@@ -5,7 +5,7 @@
  */
 
 import { pathToFileURL } from "node:url";
-import { interfaces } from "inversify";
+import type { interfaces } from "inversify";
 
 type ImportResult<T> = Promise<interfaces.Newable<T> & Record<PropertyKey, unknown>>;
 

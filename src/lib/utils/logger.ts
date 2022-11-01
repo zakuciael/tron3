@@ -5,7 +5,8 @@
  */
 
 import process from "node:process";
-import { createLogger, Logger as WinstonLogger, transports } from "winston";
+import type { Logger as WinstonLogger } from "winston";
+import { createLogger, transports } from "winston";
 import { elegantFormat, LABEL } from "@zakku/winston-logs";
 import { Injectable } from "~/lib/decorators/injectable.js";
 

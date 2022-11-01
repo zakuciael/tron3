@@ -4,11 +4,12 @@
  * MIT Licensed
  */
 
-import { Client, Events, Interaction } from "discord.js";
+import type { Interaction, Client } from "discord.js";
+import { Events } from "discord.js";
 
 import { Listener } from "~/lib/structures/bases/listener.js";
 import { TronEvents } from "~/lib/types/events.js";
-import { Logger } from "~/lib/utils/logger.js";
+import type { Logger } from "~/lib/utils/logger.js";
 import { Injectable } from "~/lib/decorators/injectable.js";
 
 @Injectable

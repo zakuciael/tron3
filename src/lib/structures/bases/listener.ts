@@ -5,7 +5,7 @@
  */
 
 import type { EventEmitter } from "node:events";
-import { Client, ClientEvents } from "discord.js";
+import type { Client, ClientEvents } from "discord.js";
 import { Injectable } from "~/lib/decorators/injectable.js";
 
 @Injectable

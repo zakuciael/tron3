@@ -11,15 +11,12 @@ import type {
     ApplicationCommandManager,
     ApplicationCommandSubCommandData,
     ApplicationCommandSubGroupData,
-    ChatInputApplicationCommandData,
-    ChatInputCommandInteraction
-} from "discord.js";
-import {
-    ApplicationCommandOptionType,
     AutocompleteInteraction,
-    Collection,
+    ChatInputApplicationCommandData,
+    ChatInputCommandInteraction,
     CommandInteractionOptionResolver
 } from "discord.js";
+import { ApplicationCommandOptionType, Collection } from "discord.js";
 import type { interfaces } from "inversify";
 import type { FileMetadata, NamedStoreOptions } from "~/lib/structures/store.js";
 import { Store } from "~/lib/structures/store.js";
