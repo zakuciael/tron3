@@ -33,6 +33,14 @@ export class SlashCommandStore extends Store<SlashCommand> {
         super(SlashCommand as any, { ...options, name: "commands" });
     }
 
+    public get(interaction: ChatInputCommandInteraction): SlashCommand {
+        return this.container.getTagged<SlashCommand>(
+            interaction.commandName,
+            SLASH_COMMAND_OPTIONS_TAG,
+            interaction.options
+        );
+    }
+
     public async registerAll(): Promise<void> {
         // Early escape when application is not properly loaded.
         if (!this.client.application) return;
