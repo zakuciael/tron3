@@ -7,7 +7,10 @@
 import { fileURLToPath, URL } from "node:url";
 import type { interfaces } from "inversify";
 import { Container } from "inversify";
-import { Client, ClientOptions } from "discord.js";
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+import type { ClientOptions } from "discord.js";
+import { Client } from "discord.js";
+/* eslint-enable @typescript-eslint/consistent-type-imports */
 import { LABEL } from "@zakku/winston-logs";
 import { Injectable } from "~/lib/decorators/injectable.js";
 import { Logger } from "~/lib/utils/logger.js";
